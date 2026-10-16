@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+.data/
+.playwright-cli/
+.aistudio/
+.gmp_cache/
