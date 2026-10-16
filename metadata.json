@@ -1,0 +1,6 @@
+{
+  "name": "FireSight",
+  "description": "Dark-mode AI incident workspace combining Gemini Live voice and camera assistance, parallel Argon building research, source-linked 3D scene reconstruction, and Google Maps Platform.",
+  "requestFramePermissions": ["microphone", "camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

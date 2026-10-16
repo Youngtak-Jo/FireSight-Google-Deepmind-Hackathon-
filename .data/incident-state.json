@@ -1,0 +1,74 @@
+{
+  "id": "inc-standby-empty",
+  "shareToken": "fs-standby-demo",
+  "shareExpiresAt": "2026-10-16T09:42:49.358Z",
+  "revision": 1,
+  "buildingRevision": 1,
+  "title": "Standby — Awaiting 911 Emergency Call Intake",
+  "status": "standby",
+  "demoScenarioId": "standby",
+  "demoRunning": false,
+  "demoStepIndex": 0,
+  "demoTotalSteps": 8,
+  "callState": {
+    "active": false,
+    "muted": false,
+    "questionsAskedCount": 0
+  },
+  "building": null,
+  "facts": [],
+  "peopleSummary": {
+    "totalReported": 0,
+    "floorOnlyCounts": {},
+    "preciseRoomCounts": {},
+    "unknownLocationCount": 0,
+    "entries": [],
+    "notes": []
+  },
+  "sources": [],
+  "scene": {
+    "buildingRevision": 1,
+    "envelopeId": "env-standby-1",
+    "units": "meters",
+    "orientationDeg": 0,
+    "dimensions": {
+      "width": 34,
+      "depth": 24,
+      "height": 16
+    },
+    "facadeSummary": "Awaiting building identification and multimodal research",
+    "roofSummary": "Awaiting aerial and architectural plan verification",
+    "structuralNotes": [
+      "Launch Demo Scenario 1 (Mockup Asset Demo) or Demo Scenario 2 (Live AI Research Demo) to begin"
+    ],
+    "floors": [],
+    "stairs": [],
+    "fireZones": [],
+    "stagingCandidates": [],
+    "quarantinedItems": [],
+    "scenarioAssumptions": {
+      "fuelAssumptions": "Awaiting building occupancy & materials verification.",
+      "openingsAssumptions": "Interior doors assumed closed unless reported open.",
+      "compartmentAssumptions": "Unverified compartmentation.",
+      "suppressionAssumptions": "Sprinkler status unconfirmed.",
+      "ventilationAssumptions": "Outdoor wind alone does not establish indoor smoke flow."
+    }
+  },
+  "weather": {
+    "temperatureCelsius": null,
+    "relativeHumidity": null,
+    "windSpeedKmh": null,
+    "windGustKmh": null,
+    "windDirectionFromDeg": null,
+    "windCardinalFrom": null,
+    "conditionText": "Standby",
+    "conditionType": "CLEAR",
+    "precipitationText": null,
+    "placeName": "Awaiting Incident Coordinates",
+    "observationTime": "2026-10-16T05:42:49.358Z",
+    "sourceName": "Google Maps Weather API",
+    "sourceUrl": null,
+    "buildingRevision": 1
+  },
+  "timeline": []
+}
