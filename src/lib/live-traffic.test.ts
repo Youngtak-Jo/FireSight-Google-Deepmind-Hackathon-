@@ -42,8 +42,9 @@ const SEOUL_SAMPLE = {
     ROAD_TRAFFIC_STTS: {
       AVG_ROAD_DATA: { ROAD_MSG: '전체적으로 차량 흐름이 느려요', ROAD_TRAFFIC_IDX: '서행', ROAD_TRAFFIC_SPD: 17 },
       ROAD_TRAFFIC_STTS: [
-        { ROAD_NM: '영동대로', START_ND_NM: '봉은사역', END_ND_NM: '삼성역', SPD: 12, IDX: '정체' },
-        { ROAD_NM: '봉은사로', START_ND_NM: '코엑스북문', END_ND_NM: '삼성중앙역', SPD: '23', IDX: '서행' },
+        { ROAD_NM: '테헤란로', START_ND_NM: '선릉역', END_ND_NM: '역삼역', START_ND_XY: '127.04900_37.50450', SPD: 30, IDX: '원활' },
+        { ROAD_NM: '영동대로', START_ND_NM: '봉은사역', END_ND_NM: '삼성역', START_ND_XY: '127.06081_37.51219', SPD: 12, IDX: '정체' },
+        { ROAD_NM: '봉은사로', START_ND_NM: '코엑스북문', END_ND_NM: '삼성중앙역', START_ND_XY: '127.05756_37.51356', SPD: '23', IDX: '서행' },
       ],
     },
     ACDNT_CNTRL_STTS: [{ ACDNT_OCCR_DT: '2026-11-28 14:10', ACDNT_TYPE: '공사', ACDNT_INFO: '테헤란로 1개 차로 통제' }],
@@ -84,18 +85,21 @@ test('카카오 길찾기: 경로 실패 코드는 오류로 알린다', () => {
 });
 
 test('서울 도시데이터: 평균 소통·도로별 속도·사고·기상·혼잡도를 읽는다', () => {
-  const c = parseSeoulCityData(SEOUL_SAMPLE, '강남 MICE 관광특구');
+  const c = parseSeoulCityData(SEOUL_SAMPLE, '강남 MICE 관광특구', COEX);
   assert.equal(c.areaName, '강남 MICE 관광특구');
   assert.equal(c.avgLevel, '서행');
   assert.equal(c.avgSpeedKmh, 17);
-  assert.equal(c.roads.length, 2);
+  assert.equal(c.roads.length, 3);
+  // 사건 위치(코엑스)에서 가까운 순: 영동대로(약 0.2km) → 봉은사로 → 테헤란로(멀리)
   assert.deepEqual(
     c.roads.map((r) => [r.roadName, r.level, r.speedKmh]),
     [
       ['영동대로', '정체', 12],
       ['봉은사로', '서행', 23],
+      ['테헤란로', '원활', 30],
     ]
   );
+  assert.ok((c.roads[0].distanceM ?? 0) < 300);
   assert.equal(c.accidents[0].info, '테헤란로 1개 차로 통제');
   assert.equal(c.weather?.tempC, 8.5);
   assert.equal(c.crowd?.level, '붐빔');

@@ -38,6 +38,8 @@ export interface LiveRoadSegment {
   to?: string;
   speedKmh: number | null;
   level: string; // 원활 / 서행 / 정체 등 원문
+  /** 사건 위치에서 구간 시작점까지 거리(m), 좌표가 있을 때 */
+  distanceM?: number;
 }
 
 export interface LiveAccident {
@@ -177,7 +179,26 @@ export function parseKakaoDirections(json: unknown): { durationSec: number | nul
 // ---------------------------------------------------------------------------
 // 2) 서울 실시간 도시데이터
 
-export function parseSeoulCityData(json: unknown, areaName: string): LiveCityData {
+/** 서울 도시데이터 노드 좌표 'lng_lat' → {lat,lng} (2026-11 실제 응답 형식: "126.97775_37.57013") */
+function parseNodeXY(v: unknown): { lat: number; lng: number } | null {
+  const s = str(v);
+  if (!s) return null;
+  const [a, b] = s.split(/[_,\s]+/).map(Number);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  return a > b ? { lng: a, lat: b } : { lng: b, lat: a };
+}
+
+/**
+ * 서울 실시간 도시데이터 응답 해석.
+ * 2026-11 샘플키(광화문·덕수궁) 실제 응답으로 확인한 구조:
+ *  CITYDATA.ROAD_TRAFFIC_STTS = { AVG_ROAD_DATA{ROAD_MSG,ROAD_TRAFFIC_IDX,ROAD_TRAFFIC_SPD}, ROAD_TRAFFIC_STTS[{ROAD_NM,START_ND_NM,END_ND_NM,START_ND_XY,SPD,IDX}] }
+ *  WEATHER_STTS[{TEMP,HUMIDITY,WIND_DIRCT(예: 'ESE'),WIND_SPD}], LIVE_PPLTN_STTS[{AREA_CONGEST_LVL,AREA_PPLTN_MIN,AREA_PPLTN_MAX}]
+ */
+export function parseSeoulCityData(
+  json: unknown,
+  areaName: string,
+  center?: { lat: number; lng: number }
+): LiveCityData {
   const result = deepFind(json, 'RESULT');
   const resultCode = str(pick(result, 'RESULT.CODE', 'CODE'));
   if (resultCode && !/^INFO-000$/i.test(resultCode)) {
@@ -193,13 +214,19 @@ export function parseSeoulCityData(json: unknown, areaName: string): LiveCityDat
   });
   const roads: LiveRoadSegment[] = roadsRaw
     .filter((r) => pick(r, 'ROAD_NM') !== undefined)
-    .map((r) => ({
-      roadName: str(pick(r, 'ROAD_NM')) ?? '도로',
-      from: str(pick(r, 'START_ND_NM')),
-      to: str(pick(r, 'END_ND_NM')),
-      speedKmh: num(pick(r, 'SPD', 'ROAD_TRAFFIC_SPD')),
-      level: str(pick(r, 'IDX', 'ROAD_TRAFFIC_IDX')) ?? '정보없음',
-    }));
+    .map((r) => {
+      const xy = parseNodeXY(pick(r, 'START_ND_XY'));
+      return {
+        roadName: str(pick(r, 'ROAD_NM')) ?? '도로',
+        from: str(pick(r, 'START_ND_NM')),
+        to: str(pick(r, 'END_ND_NM')),
+        speedKmh: num(pick(r, 'SPD', 'ROAD_TRAFFIC_SPD')),
+        level: str(pick(r, 'IDX', 'ROAD_TRAFFIC_IDX')) ?? '정보없음',
+        distanceM: center && xy ? Math.round(haversineM(center, xy)) : undefined,
+      };
+    });
+  // 장소 하나에 도로 구간이 100개 넘게 오므로 사건 위치에서 가까운 순으로 정렬한다
+  if (center) roads.sort((a, b) => (a.distanceM ?? Infinity) - (b.distanceM ?? Infinity));
 
   const accidents: LiveAccident[] = asArray(deepFind(json, 'ACDNT_CNTRL_STTS'))
     .map((a) => ({
@@ -366,7 +393,7 @@ export async function buildLiveOverview(input: LiveOverviewInput): Promise<LiveO
     try {
       const url = `http://openapi.seoul.go.kr:8088/${encodeURIComponent(env.SEOUL_OPEN_API_KEY)}/json/citydata/1/5/${encodeURIComponent(input.seoulAreaName)}`;
       const json = await cached(`seoul:${env.SEOUL_OPEN_API_KEY}:${input.seoulAreaName}`, 60_000, () => fetchJson(url));
-      city = parseSeoulCityData(json, input.seoulAreaName);
+      city = parseSeoulCityData(json, input.seoulAreaName, center);
       sources.seoul = { status: 'ok', fetchedAt: now };
     } catch (err: any) {
       sources.seoul = { status: 'error', message: String(err?.message || err) };

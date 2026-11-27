@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { IncidentState } from '../lib/incident-engine';
 import type { LiveOverview, LiveSourceState, LiveCctv } from '../lib/live-traffic';
+import { cardinalToKo } from '../lib/ko-terms';
 
 const REFRESH_MS = 60_000;
 
@@ -236,6 +237,9 @@ export function LiveTrafficView({ incident }: { incident: IncidentState }) {
                   <span className="truncate text-zinc-200">
                     {r.roadName}
                     {r.from && r.to && <span className="text-zinc-500"> ({r.from}→{r.to})</span>}
+                    {r.distanceM !== undefined && (
+                      <span className="ml-1 font-mono text-[10px] text-zinc-600">{(r.distanceM / 1000).toFixed(1)}km</span>
+                    )}
                   </span>
                   <span className={`shrink-0 font-mono ${levelClass(r.level)}`}>
                     {r.level}
@@ -282,7 +286,7 @@ export function LiveTrafficView({ incident }: { incident: IncidentState }) {
             <div className="mt-1 text-zinc-300">
               {city.weather?.tempC ?? '—'}°C · 습도 {city.weather?.humidity ?? '—'}%
               <br />
-              바람 {city.weather?.windDir ?? '—'} {city.weather?.windSpeed ?? '—'}m/s
+              바람 {city.weather?.windDir ? `${cardinalToKo(city.weather.windDir)}풍` : '—'} {city.weather?.windSpeed ?? '—'}m/s
             </div>
           </div>
           <div className="rounded-md border border-zinc-800 bg-zinc-900/50 p-2.5">
