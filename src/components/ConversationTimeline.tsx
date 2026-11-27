@@ -211,7 +211,7 @@ export function ConversationTimeline({
             공유 사건 기록
           </span>
           <span className="rounded-xs border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
-            {incident.timeline.length}건 · 버전 #{incident.buildingRevision}
+            {incident.timeline.length}건 · 정보 수정 #{incident.buildingRevision}
           </span>
           {incident.demoRunning && (
             <span
@@ -482,8 +482,8 @@ function TimelineEventCard({
           speaker="FireSight 조사 AI"
           badge={
             isObsolete
-              ? `이전 버전 #${td.buildingRevision} (대체됨)`
-              : `건물 정보 종합 · 버전 #${td.buildingRevision}`
+              ? `이전 정보 수정 #${td.buildingRevision} (대체됨)`
+              : `건물 정보 종합 · 정보 수정 #${td.buildingRevision}`
           }
           timestamp={event.createdAt}
           icon={<Sparkles className="h-3.5 w-3.5 text-amber-400" />}
@@ -715,8 +715,8 @@ function TimelineEventCard({
           speaker={event.speaker}
           badge={
             isObsolete
-              ? `이전 3D 버전 #${mu.buildingRevision} (대체됨)`
-              : `3D 화면 갱신 · 버전 #${mu.buildingRevision}`
+              ? `이전 3D · 정보 수정 #${mu.buildingRevision} (대체됨)`
+              : `3D 화면 갱신 · 정보 수정 #${mu.buildingRevision}`
           }
           timestamp={event.createdAt}
           icon={<Box className="h-3.5 w-3.5 text-amber-400" />}
@@ -863,7 +863,7 @@ function TimelineEventCard({
       <Message id={event.id} className="border-amber-500/40 bg-amber-950/20">
         <MessageHeader
           speaker={event.speaker}
-          badge={`정보 정정 · 버전 #${event.buildingRevision}`}
+          badge={`정보 정정 · 정보 수정 #${event.buildingRevision}`}
           timestamp={event.createdAt}
           icon={<AlertCircle className="h-3.5 w-3.5 text-amber-400" />}
         />

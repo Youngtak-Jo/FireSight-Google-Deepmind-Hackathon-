@@ -305,7 +305,7 @@ export function ResponderToolbar({
             <div className="max-h-60 overflow-y-auto space-y-2 rounded-md border border-zinc-800 bg-zinc-950 p-3">
               {liveSession.transcripts.length === 0 ? (
                 <p className="text-center text-xs text-zinc-500 py-4">
-                  실시간 음성을 시작하거나 아래에 질문을 입력하세요. AI는 버전 #{incident.buildingRevision}의 사건 정보(층, 계단, 위험요소, 요구조자 수)를 모두 알고 있습니다.
+                  실시간 음성을 시작하거나 아래에 질문을 입력하세요. AI는 정보 수정 #{incident.buildingRevision} 기준의 사건 정보(층, 계단, 위험요소, 요구조자 수)를 모두 알고 있습니다.
                 </p>
               ) : (
                 liveSession.transcripts.map((t) => (

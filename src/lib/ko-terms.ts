@@ -9,7 +9,10 @@
  *  - Field Report → 현장보고
  *  - Fire/Smoke zone → 화염·연기 구역, Smoke only → 연기만 (화염 없음)
  *  - Approach route → 출동 경로
- *  - Revision (REV #) → 버전
+ *  - Revision (REV #) → 정보 수정 #
+ *  - Cited Findings → 근거 자료
+ *  - Architectural Cutaway / Interior X-Ray → 단면 보기 / 내부 투시
+ *  - Labels → 이름표
  *  - Plume drift → 연기 확산
  */
 

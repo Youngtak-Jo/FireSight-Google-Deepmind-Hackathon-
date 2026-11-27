@@ -576,7 +576,7 @@ export function TraceChainOfThought({ findings }: { findings: string[] }) {
     <div className="rounded-sm border border-zinc-800/70 bg-zinc-950/50 p-2 space-y-1">
       <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
         <Sparkles className="h-3 w-3 text-amber-400" />
-        <span>근거 있는 확인 사항</span>
+        <span>근거 자료</span>
       </div>
       <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-zinc-300">
         {findings.map((f, idx) => (

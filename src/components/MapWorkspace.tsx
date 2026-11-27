@@ -335,7 +335,7 @@ export function MapWorkspace({
               fontSize="11.5"
               fontWeight="700"
             >
-              {incident.building?.name || '사건 건물'} (버전 #{incident.buildingRevision})
+              {incident.building?.name || '사건 건물'} (정보 수정 #{incident.buildingRevision})
             </text>
           </g>
 

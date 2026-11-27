@@ -418,7 +418,7 @@ export default function App() {
                 data-testid="header-building-revision"
                 className="shrink-0 rounded-xs border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] font-medium text-amber-300"
               >
-                버전 #{incident.buildingRevision}
+                정보 수정 #{incident.buildingRevision}
               </span>
             </div>
             <p className="truncate text-[11px] text-zinc-400 hidden md:block">

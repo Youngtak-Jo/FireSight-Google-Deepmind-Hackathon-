@@ -42,8 +42,8 @@ export function SourcePreviewDialog({
         title={source.title}
         description={
           source.originalTitle
-            ? `원본 자료: ${source.originalTitle} · 건물 정보 버전 #${source.buildingRevision}`
-            : `확인된 사건 근거 자료 · 건물 정보 버전 #${source.buildingRevision}`
+            ? `원본 자료: ${source.originalTitle} · 정보 수정 #${source.buildingRevision}`
+            : `확인된 사건 근거 자료 · 정보 수정 #${source.buildingRevision}`
         }
         className="max-w-4xl max-h-[90vh] overflow-y-auto"
       >

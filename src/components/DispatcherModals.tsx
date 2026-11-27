@@ -92,7 +92,7 @@ export function ShareIncidentDialog({
                 휴대폰으로 현장대원 연결
               </div>
               <p className="text-zinc-400 leading-relaxed">
-                휴대폰 브라우저나 다른 탭에서 이 링크를 열면 가입 없이 바로 실시간 사건방(버전 #{incident.buildingRevision})에 들어옵니다.
+                휴대폰 브라우저나 다른 탭에서 이 링크를 열면 가입 없이 바로 실시간 사건방(정보 수정 #{incident.buildingRevision})에 들어옵니다.
               </p>
               <button
                 type="button"
@@ -368,7 +368,7 @@ export function ReconcileFactsDialog({
             {activeTab === 'building' && (
               <div className="space-y-3">
                 <p className="text-amber-300">
-                  건물을 정정하면 건물 정보 버전이 올라가고(#{incident.buildingRevision} → #{incident.buildingRevision + 1}), 이전 건물 구조와 층 위치는 무효가 되며, AI 조사를 새로 시작합니다.
+                  건물을 정정하면 정보 수정 번호가 올라가고(#{incident.buildingRevision} → #{incident.buildingRevision + 1}), 이전 건물 구조와 층 위치는 무효가 되며, AI 조사를 새로 시작합니다.
                 </p>
                 <div>
                   <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
