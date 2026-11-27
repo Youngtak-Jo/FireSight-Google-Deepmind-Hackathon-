@@ -96,3 +96,13 @@ test('데모 대화가 119 접수 체크리스트 순서를 따르고 같은 질
   const takerTexts = calls.filter((e) => e.type === 'call_taker_utterance').map((e) => e.text);
   assert.equal(new Set(takerTexts).size, takerTexts.length);
 });
+
+test('소방서·119안전센터는 구글 지도에서 확인한 실제 주소를 쓴다', () => {
+  const stations = state.building!.nearbyStations;
+  const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
+  assert.match(byId['st-samseong'].address, /테헤란로 629/);
+  assert.match(byId['st-yeongdong'].address, /도산대로 320/);
+  assert.match(byId['st-yeoksam'].address, /역삼로 236/);
+  for (const st of stations) assert.ok(!/시연용 위치|주소 확인 필요/.test(st.address), st.id);
+  assert.ok(!JSON.stringify(state).includes('아셈로'), '코엑스 서쪽 도로는 봉은사로86길·테헤란로87길');
+});

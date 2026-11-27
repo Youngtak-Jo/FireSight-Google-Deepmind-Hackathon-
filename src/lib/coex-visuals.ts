@@ -114,7 +114,7 @@ export function buildCoexSiteMapSvg(): string {
     <text x="420" y="99">봉은사로</text>
     <text x="420" y="459">테헤란로</text>
     <text x="815" y="270" transform="rotate(90 815 270)">영동대로</text>
-    <text x="131" y="270" transform="rotate(90 131 270)">아셈로</text>
+    <text x="131" y="190" font-size="13" transform="rotate(90 131 190)">봉은사로86길 · 테헤란로87길</text>
   </g>
   <!-- 코엑스 블록 -->
   <rect x="170" y="140" width="580" height="265" fill="#0f766e" fill-opacity="0.18" stroke="#2dd4bf" stroke-width="2"/>
@@ -211,7 +211,7 @@ export const COEX_REFERENCE_PHOTOS: BuildingReferencePhoto[] = [
     angleLabel: '위치도 · 시연용 도식',
     materialTags: ['봉은사로 북문', '영동대로 동문', '삼성역 연결'],
     caption:
-      '코엑스 블록과 주변 도로(봉은사로·영동대로·테헤란로·아셈로), 북문·동문 GATE, 삼성역·봉은사역 위치를 단순화한 시연용 그림입니다.',
+      '코엑스 블록과 주변 도로(봉은사로·영동대로·테헤란로·봉은사로86길), 북문·동문 GATE, 삼성역·봉은사역 위치를 단순화한 시연용 그림입니다.',
     sourceLabel: '시연용 도식 (실제 지도 아님)',
     dataUrl: COEX_GEOCODE_MAP_URL,
   },

@@ -78,7 +78,7 @@ export function MapWorkspace({
         east: '영동대로 (동문 GATE · 삼성펌프)',
         north: '봉은사로 (북문 GATE · 임시응급의료소)',
         south: '테헤란로 (삼성역 방면)',
-        west: '아셈로',
+        west: '봉은사로86길 · 테헤란로87길',
         plaza: '삼성역 연결통로 (지하 · 연기 이동 방향)',
         stream: '탄천',
       }
@@ -90,6 +90,12 @@ export function MapWorkspace({
         plaza: '3RD & BROADWAY UPWIND PLAZA (EMS TRIAGE)',
         stream: 'TANCHEON STREAM',
       };
+
+  // 도로선 위치(건물 중심에서 px, 확대 1배 기준). 코엑스는 구글 지도에서 잰 실제 거리에 맞춤
+  // (북문 정류장 ≈ 북쪽 70px, 동문 정류장 ≈ 동쪽 80px), 기존 데모는 원래 값 유지
+  const road = isCoexMap
+    ? { e: 82, n: -74, w: -80, s: 110 }
+    : { e: 56, n: -125, w: -95, s: 72 };
 
   const windFromDeg = incident.weather.windDirectionFromDeg ?? 290;
   const windToDeg = (windFromDeg + 180) % 360;
@@ -193,17 +199,17 @@ export function MapWorkspace({
           <g stroke="#1e293b" strokeLinecap="round">
             {/* Yeongdong-daero (8-Lane N-S Primary Arterial) */}
             <line
-              x1={buildingPt.x + 56 * zoom}
+              x1={buildingPt.x + road.e * zoom}
               y1="0"
-              x2={buildingPt.x + 56 * zoom}
+              x2={buildingPt.x + road.e * zoom}
               y2="600"
               stroke="#27272a"
               strokeWidth={28 * zoom}
             />
             <line
-              x1={buildingPt.x + 56 * zoom}
+              x1={buildingPt.x + road.e * zoom}
               y1="0"
-              x2={buildingPt.x + 56 * zoom}
+              x2={buildingPt.x + road.e * zoom}
               y2="600"
               stroke="#3f3f46"
               strokeWidth="1.5"
@@ -212,26 +218,26 @@ export function MapWorkspace({
             {/* Teheran-ro (Major E-W Arterial via Samseong Station) */}
             <line
               x1="0"
-              y1={buildingPt.y - 125 * zoom}
+              y1={buildingPt.y + road.n * zoom}
               x2="880"
-              y2={buildingPt.y - 125 * zoom}
+              y2={buildingPt.y + road.n * zoom}
               stroke="#27272a"
               strokeWidth={22 * zoom}
             />
             {/* Teheran-ro 108-gil (West/North FDC & Service Alley) */}
             <line
-              x1={buildingPt.x - 95 * zoom}
+              x1={buildingPt.x + road.w * zoom}
               y1="0"
-              x2={buildingPt.x - 95 * zoom}
+              x2={buildingPt.x + road.w * zoom}
               y2="600"
               stroke="#1e293b"
               strokeWidth={14 * zoom}
             />
             <line
               x1="0"
-              y1={buildingPt.y + 72 * zoom}
+              y1={buildingPt.y + road.s * zoom}
               x2="880"
-              y2={buildingPt.y + 72 * zoom}
+              y2={buildingPt.y + road.s * zoom}
               stroke="#1e293b"
               strokeWidth={15 * zoom}
             />
@@ -239,19 +245,19 @@ export function MapWorkspace({
 
           {/* Street Labels */}
           <text
-            x={buildingPt.x + 76 * zoom}
+            x={buildingPt.x + (road.e + 20) * zoom}
             y="185"
             fill="#94a3b8"
             fontFamily="IBM Plex Mono, monospace"
             fontSize="11"
             fontWeight="600"
-            transform={`rotate(90, ${buildingPt.x + 76 * zoom}, 185)`}
+            transform={`rotate(90, ${buildingPt.x + (road.e + 20) * zoom}, 185)`}
           >
             {mapLabels.east}
           </text>
           <text
             x="120"
-            y={buildingPt.y - 138 * zoom}
+            y={buildingPt.y + (road.n - 13) * zoom}
             fill="#94a3b8"
             fontFamily="IBM Plex Mono, monospace"
             fontSize="10"
@@ -260,8 +266,8 @@ export function MapWorkspace({
             {mapLabels.north}
           </text>
           <text
-            x={isCoexMap ? buildingPt.x + 62 * zoom : buildingPt.x - 185 * zoom}
-            y={buildingPt.y + 64 * zoom}
+            x={isCoexMap ? buildingPt.x + 30 * zoom : buildingPt.x - 185 * zoom}
+            y={buildingPt.y + (isCoexMap ? road.s - 8 : 64) * zoom}
             fill="#64748b"
             fontFamily="IBM Plex Mono, monospace"
             fontSize="10"
@@ -271,7 +277,7 @@ export function MapWorkspace({
           {mapLabels.south && (
             <text
               x="120"
-              y={buildingPt.y + 92 * zoom}
+              y={buildingPt.y + (road.s + 20) * zoom}
               fill="#94a3b8"
               fontFamily="IBM Plex Mono, monospace"
               fontSize="10"
@@ -282,13 +288,13 @@ export function MapWorkspace({
           )}
           {mapLabels.west && (
             <text
-              x={buildingPt.x - 112 * zoom}
+              x={buildingPt.x + (road.w - 17) * zoom}
               y="185"
               fill="#94a3b8"
               fontFamily="IBM Plex Mono, monospace"
               fontSize="10"
               fontWeight="600"
-              transform={`rotate(90, ${buildingPt.x - 112 * zoom}, 185)`}
+              transform={`rotate(90, ${buildingPt.x + (road.w - 17) * zoom}, 185)`}
             >
               {mapLabels.west}
             </text>

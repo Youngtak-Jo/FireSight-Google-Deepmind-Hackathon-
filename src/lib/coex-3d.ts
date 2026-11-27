@@ -3,7 +3,7 @@
  *
  * - 지상: 유리 커튼월 컨벤션센터 (1~2층)
  * - 지하: 지면을 반투명하게 처리해 지하1층 코엑스몰이 위에서 비쳐 보이게 함
- * - 주변: 영동대로(동), 봉은사로(북), 테헤란로(남), 아셈로(서)
+ * - 주변: 영동대로(동), 봉은사로(북), 테헤란로(남), 봉은사로86길·테헤란로87길(서)
  * 좌표계: x = 동(+)/서(-), z = 남(+)/북(-), y = 위(+), 단위 m
  */
 import * as THREE from 'three';
@@ -73,7 +73,7 @@ export function createCoexUrbanEnvironment(spec: SceneSpec): THREE.Group {
   walk.position.set(0, 0.03, 0);
   g.add(walk);
 
-  // 3. 도로 4면 (영동대로 동, 봉은사로 북, 테헤란로 남, 아셈로 서)
+  // 3. 도로 4면 (영동대로 동, 봉은사로 북, 테헤란로 남, 봉은사로86길·테헤란로87길 서)
   const roadMat = new THREE.MeshStandardMaterial({
     color: 0x0f172a,
     roughness: 0.95,
@@ -110,7 +110,7 @@ export function createCoexUrbanEnvironment(spec: SceneSpec): THREE.Group {
   addRoadNS(eastX, roadW + 4); // 영동대로 (넓은 간선도로)
   addRoadEW(northZ, roadW); // 봉은사로
   addRoadEW(southZ, roadW + 2); // 테헤란로
-  addRoadNS(westX, roadW - 2); // 아셈로
+  addRoadNS(westX, roadW - 4); // 봉은사로86길·테헤란로87길 (이면도로)
 
   // 횡단보도 (동문 GATE 앞)
   for (let i = 0; i < 7; i++) {
