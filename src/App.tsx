@@ -18,6 +18,7 @@ import { ThreeSceneWorkspace, type Selected3DElement } from './components/ThreeS
 import { MapWorkspace } from './components/MapWorkspace';
 import { BuildingReferenceView } from './components/BuildingReferenceView';
 import { CallerPerspectiveView } from './components/CallerPerspectiveView';
+import { Kr119IntakeChecklist } from './components/Kr119IntakeChecklist';
 import { ResponderToolbar } from './components/ResponderFieldPanel';
 import { ShareIncidentDialog, ReconcileFactsDialog } from './components/DispatcherModals';
 import { SourcePreviewDialog } from './components/SourcePreviewDialog';
@@ -30,6 +31,12 @@ import type {
   Perspective,
   SourceDocument,
 } from './lib/incident-engine';
+
+const PERSPECTIVE_LABELS: Record<Perspective, string> = {
+  dispatcher: '상황실',
+  caller: '신고자',
+  responder: '현장대원',
+};
 
 export default function App() {
   // Determine initial perspective from URL query string (Responder phone link opens Responder directly)
@@ -428,7 +435,7 @@ export default function App() {
             className="inline-flex items-center rounded-md border border-zinc-800 bg-zinc-900 p-0.5"
           >
             <span className="px-2 font-mono text-[10px] uppercase text-zinc-400 hidden lg:inline">
-              Demo Perspective:
+              화면 전환:
             </span>
             {(['dispatcher', 'caller', 'responder'] as Perspective[]).map((p) => (
               <button
@@ -442,7 +449,7 @@ export default function App() {
                     : 'text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100'
                 }`}
               >
-                {p}
+                {PERSPECTIVE_LABELS[p]}
               </button>
             ))}
           </div>
@@ -462,7 +469,7 @@ export default function App() {
                 }`}
               />
               <span className="font-mono text-[10px] text-zinc-300 hidden sm:inline">
-                {isCallActive ? 'CALL ACTIVE' : 'CALL ENDED'}
+                {isCallActive ? '통화 중' : '통화 종료'}
               </span>
               {isCallActive ? (
                 <>
@@ -474,7 +481,7 @@ export default function App() {
                         : handleCallControl(isCallMuted ? 'unmute' : 'mute')
                     }
                     data-testid="header-call-mute-btn"
-                    title={isCallMuted ? 'Unmute active caller' : 'Mute active caller'}
+                    title={isCallMuted ? '신고자 음소거 해제' : '신고자 음소거'}
                     className={`rounded-xs px-1.5 py-0.5 text-[11px] font-medium transition ${
                       isCallMuted
                         ? 'bg-amber-500/20 text-amber-300'
@@ -484,12 +491,12 @@ export default function App() {
                     {isCallMuted ? (
                       <span className="inline-flex items-center gap-1">
                         <MicOff className="h-3 w-3 text-amber-400" />
-                        Unmute
+                        음소거 해제
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1">
                         <Mic className="h-3 w-3 text-emerald-400" />
-                        Mute
+                        음소거
                       </span>
                     )}
                   </button>
@@ -500,11 +507,11 @@ export default function App() {
                       void handleCallControl('end');
                     }}
                     data-testid="header-call-end-btn"
-                    title="End active caller intake"
+                    title="신고 접수 통화 종료"
                     className="inline-flex items-center gap-1 rounded-xs bg-red-600/90 px-1.5 py-0.5 text-[11px] font-medium text-white hover:bg-red-500"
                   >
                     <PhoneOff className="h-3 w-3" />
-                    End
+                    종료
                   </button>
                 </>
               ) : (
@@ -515,7 +522,7 @@ export default function App() {
                   className="inline-flex items-center gap-1 rounded-xs bg-emerald-600/90 px-1.5 py-0.5 text-[11px] font-medium text-white hover:bg-emerald-500"
                 >
                   <Phone className="h-3 w-3" />
-                  Resume Call
+                  통화 재개
                 </button>
               )}
             </div>
@@ -632,6 +639,7 @@ export default function App() {
               mobileTab === 'timeline' ? 'flex flex-col' : 'hidden md:flex md:flex-col'
             }`}
           >
+            {perspective === 'dispatcher' && <Kr119IntakeChecklist incident={incident} />}
             <ConversationTimeline
               incident={incident}
               perspective={perspective}

@@ -1227,7 +1227,7 @@ export function createEmptyStandbyIncidentState(): IncidentState {
     shareExpiresAt: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
     revision: 1,
     buildingRevision: 1,
-    title: 'Standby — Awaiting 911 Emergency Call Intake',
+    title: '대기 중 — 119 신고 접수 대기',
     status: 'standby',
     demoScenarioId: 'standby',
     demoRunning: false,

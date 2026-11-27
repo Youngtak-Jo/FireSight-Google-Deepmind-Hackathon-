@@ -19,6 +19,21 @@ import {
 } from './ui/base-primitives';
 import type { IncidentState } from '../lib/incident-engine';
 
+/** 119 접수 흐름을 따라 눌러볼 수 있는 예시 신고 문장 (가상의 주소) */
+const DEMO_CALLER_STATEMENTS: Array<{ label: string; text: string; tone?: 'warn' }> = [
+  { label: '① 화재 발생', text: '불이 났어요! 3층짜리 빌라 2층 창문에서 검은 연기가 나와요.' },
+  { label: '② 주소', text: '화성시 동탄대로 123, 그린빌라예요.' },
+  { label: '③ 요구조자', text: '저는 밖으로 나왔는데 3층에 할머니 한 분이 아직 안 나오셨어요.' },
+  { label: '④ 모르겠음', text: '잘 모르겠어요.' },
+  { label: '⑤ 진입 장애', text: '1층 필로티 주차장에 차가 꽉 차 있어서 소방차 들어가기 힘들 것 같아요.' },
+  { label: '⚠ 갇힘', text: '연기가 방으로 들어와서 못 나가겠어요!', tone: 'warn' },
+  {
+    label: '⚠ 건물 정정',
+    text: '아, 잘못 말했어요! 옆 건물 화성시 동탄대로 125 블루빌라예요.',
+    tone: 'warn',
+  },
+];
+
 export function CallerPerspectiveView({
   incident,
   liveSession,
@@ -105,11 +120,11 @@ export function CallerPerspectiveView({
                 }`}
               />
               <h2 className="text-sm font-semibold text-zinc-100">
-                Emergency Fire Intake Line · Caller View
+                119 화재 신고 · 신고자 화면
               </h2>
             </div>
             <p className="mt-0.5 text-xs text-zinc-400">
-              Connected to AI Call-Taker (Gemini Live Voice) with human dispatcher oversight.
+              AI 접수요원(Gemini Live 음성)과 연결되며, 상황실 요원이 함께 확인합니다.
             </p>
           </div>
 
@@ -128,7 +143,7 @@ export function CallerPerspectiveView({
                 ) : (
                   <Phone className="h-3.5 w-3.5" />
                 )}
-                Start Call
+                119 전화 걸기
               </button>
             ) : (
               <>
@@ -145,12 +160,12 @@ export function CallerPerspectiveView({
                   {isMuted ? (
                     <>
                       <MicOff className="h-3.5 w-3.5 text-amber-400" />
-                      Unmute
+                      음소거 해제
                     </>
                   ) : (
                     <>
                       <Mic className="h-3.5 w-3.5 text-emerald-400" />
-                      Mute
+                      음소거
                     </>
                   )}
                 </button>
@@ -162,7 +177,7 @@ export function CallerPerspectiveView({
                   className="inline-flex items-center gap-1.5 rounded-md border border-red-500/60 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500"
                 >
                   <PhoneOff className="h-3.5 w-3.5" />
-                  End Call
+                  통화 종료
                 </button>
               </>
             )}
@@ -174,7 +189,7 @@ export function CallerPerspectiveView({
           <div className="mt-3 flex items-center justify-between rounded-md border border-emerald-500/30 bg-emerald-950/20 px-3 py-1.5 text-xs">
             <span className="flex items-center gap-2 text-emerald-300">
               <Volume2 className="h-3.5 w-3.5 animate-pulse" />
-              Gemini Live Audio Stream Active ({liveSession.muted ? 'Mic Muted' : 'Listening 16kHz PCM'})
+              실시간 음성 연결됨 ({liveSession.muted ? '마이크 꺼짐' : '듣는 중'})
             </span>
             <div className="flex items-center gap-1">
               {[0.15, 0.3, 0.5, 0.7, 0.9].map((thresh, i) => (
@@ -191,7 +206,7 @@ export function CallerPerspectiveView({
 
         {liveSession.error && (
           <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-950/30 px-3 py-1.5 text-xs text-amber-200">
-            {liveSession.error} — Typed caller statement fallback below remains active.
+            {liveSession.error} — 아래 입력창으로 글로 신고할 수 있습니다.
           </div>
         )}
       </div>
@@ -213,7 +228,7 @@ export function CallerPerspectiveView({
           >
             <MessageHeader
               speaker={evt.speaker}
-              badge={evt.speakerRole === 'caller' ? 'YOU (CALLER)' : 'AI CALL-TAKER'}
+              badge={evt.speakerRole === 'caller' ? '나' : '119'}
               timestamp={evt.createdAt}
               icon={
                 evt.speakerRole === 'caller' ? (
@@ -234,30 +249,20 @@ export function CallerPerspectiveView({
       <InputGroup>
         <div className="flex flex-wrap items-center gap-1.5 pb-1">
           <span className="font-mono text-[10px] uppercase text-zinc-400">
-            Demo Statements:
+            예시 신고:
           </span>
-          <button
-            type="button"
-            onClick={() =>
-              setTypedDraft(
-                'Black smoke is getting thicker in the 3rd floor gallery corridor 3C at 304 S Broadway, still no flames in the hallway itself, and the 2 architects in East Studio 305 are sealing the door.'
-              )
-            }
-            className="rounded-xs border border-zinc-800 bg-zinc-900 px-2 py-0.5 text-[11px] text-zinc-300 hover:bg-zinc-800"
-          >
-            Report Hallway Smoke Only
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setTypedDraft(
-                'Wait—correction! The fire is actually next door at 317 S Broadway (Grand Central Market Annex), Los Angeles, CA 90013!'
-              )
-            }
-            className="rounded-xs border border-zinc-800 bg-zinc-900 px-2 py-0.5 text-[11px] text-amber-300 hover:bg-zinc-800"
-          >
-            Correct Building Identity
-          </button>
+          {DEMO_CALLER_STATEMENTS.map((demo) => (
+            <button
+              key={demo.label}
+              type="button"
+              onClick={() => setTypedDraft(demo.text)}
+              className={`rounded-xs border border-zinc-800 bg-zinc-900 px-2 py-0.5 text-[11px] hover:bg-zinc-800 ${
+                demo.tone === 'warn' ? 'text-amber-300' : 'text-zinc-300'
+              }`}
+            >
+              {demo.label}
+            </button>
+          ))}
         </div>
 
         <form onSubmit={handleSubmitTypedFallback} className="space-y-2">
@@ -265,7 +270,7 @@ export function CallerPerspectiveView({
             htmlFor="caller-typed-fallback"
             className="block font-mono text-[10px] uppercase tracking-wider text-zinc-300"
           >
-            Typed Caller-Statement Fallback (Routes directly to AI Call-Taker & Transcript)
+            글로 신고하기 (AI 접수요원과 상황실 기록에 바로 전달됩니다)
           </label>
           <div className="flex gap-2">
             <input
@@ -273,7 +278,7 @@ export function CallerPerspectiveView({
               type="text"
               value={typedDraft}
               onChange={(e) => setTypedDraft(e.target.value)}
-              placeholder="Type caller statement to AI call-taker…"
+              placeholder="신고 내용을 입력하세요…"
               data-testid="caller-typed-input"
               className="flex-1 rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:border-zinc-600 focus:outline-none"
             />
@@ -288,7 +293,7 @@ export function CallerPerspectiveView({
               ) : (
                 <Send className="h-3.5 w-3.5" />
               )}
-              Send Statement
+              보내기
             </button>
           </div>
         </form>

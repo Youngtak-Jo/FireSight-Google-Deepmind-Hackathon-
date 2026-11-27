@@ -31,6 +31,11 @@ import {
   buildExteriorPhotoSvgDataUrl,
   createDefaultSceneForBuilding,
 } from './src/lib/evidence-generator.ts';
+import {
+  KR119_CALL_TAKER_RULES,
+  buildRuleBasedCallTakerReply,
+  formatIntakeChecklistForPrompt,
+} from './src/lib/kr119-intake.ts';
 
 const PORT = Number(process.env.PORT) || 3000;
 const DATA_DIR = path.resolve(process.cwd(), '.data');
@@ -154,6 +159,13 @@ function injectNonInterruptingDeltaToLiveSessions(
   }
 }
 
+/** 신고자·접수요원 대화만 뽑아 119 체크리스트 계산에 쓴다 */
+function getCallIntakeEvents(): TimelineEvent[] {
+  return incidentState.timeline.filter(
+    (e) => e.type === 'caller_utterance' || e.type === 'call_taker_utterance'
+  );
+}
+
 function buildIncidentSummaryForLive(role: 'caller' | 'responder'): string {
   const b = incidentState.building;
   const p = incidentState.peopleSummary;
@@ -166,17 +178,15 @@ function buildIncidentSummaryForLive(role: 'caller' | 'responder'): string {
 
   if (role === 'caller') {
     return [
-      `You are the FireSight AI Emergency Call-Taker speaking with the original caller reporting a building fire.`,
-      `CRITICAL RULES:`,
-      `1. Ask ONE short, calm, relevant question at a time. Remember what the caller already told you.`,
-      `2. Establish incident location, caller's own safety/location, and reported life risks first.`,
-      `3. Ask ONLY about information the caller knows or can safely observe (building/floor/room, relationship, flames/smoke color & movement, unconfirmed evacuees & last known locations, sprinklers/alarms, entrances/stairs/obstacles, gas/batteries/hazmat).`,
-      `4. Accept "I don't know" answers immediately. NEVER ask the caller to approach danger, open hot doors, investigate hidden areas, or fight the fire.`,
-      `Current known incident context (Building Revision #${incidentState.buildingRevision}):`,
-      `- Building: ${b ? `${b.name}, ${b.address}` : 'Unconfirmed'}`,
-      `- Caller status: ${incidentState.callState.callerLocation || 'Unconfirmed'} (${incidentState.callState.callerRelationship || 'Caller'})`,
-      `- Fire/Smoke reported: ${fz || 'None confirmed yet'}`,
-      `- People accountability: ${p.totalReported} total reported (${p.unknownLocationCount} at unknown locations).`,
+      KR119_CALL_TAKER_RULES,
+      ``,
+      `현재까지 파악된 사건 정보 (건물 정보 버전 #${incidentState.buildingRevision}):`,
+      `- 건물: ${b ? `${b.name}, ${b.address}` : '미확인'}`,
+      `- 신고자 상태: ${incidentState.callState.callerLocation || '미확인'} (${incidentState.callState.callerRelationship || '신고자'})`,
+      `- 보고된 화재·연기: ${fz || '아직 확인 안 됨'}`,
+      `- 인명: 총 ${p.totalReported}명 보고됨 (위치 모름 ${p.unknownLocationCount}명)`,
+      ``,
+      formatIntakeChecklistForPrompt(getCallIntakeEvents()),
     ].join('\n');
   }
 
@@ -892,9 +902,8 @@ async function processCallerStatementAndRespond(
   const ai = getGeminiClient();
   const currentRev = incidentState.buildingRevision;
 
-  // Deterministic + Argon extraction of facts from caller statement
-  let replyQuestion =
-    'Thank you. Are there any other entrances, stairwells, or hazards you observed before leaving?';
+  // 규칙 기반 119 체크리스트 응답을 기본값으로 두고, AI가 성공하면 AI 질문으로 대체한다
+  let replyQuestion = buildRuleBasedCallTakerReply(getCallIntakeEvents());
 
   if (ai) {
     try {
@@ -906,17 +915,23 @@ async function processCallerStatementAndRespond(
 
       const extractionResp = await ai.models.generateContent({
         model: 'gemini-4-argon',
-        contents: `You are analyzing a live emergency fire call statement and generating the AI Call-Taker's next single short question.
+        contents: `You are analyzing a live Korean 119 emergency fire call and generating the AI call-taker's next single short question.
+${KR119_CALL_TAKER_RULES}
+
 Current Building: ${incidentState.building?.name || 'Unknown'} (${incidentState.building?.address || 'Unknown'})
 Recent Call Transcript:
 ${recentTranscript}
 Latest Caller Statement: "${callerText}"
 
-Rules:
-1. Ask ONE short relevant question at a time. Never ask the caller to approach danger or investigate hidden areas.
-2. Distinguish direct observation from relayed reports.
-3. Smoke-only reports must set hasFlames=false.
-4. Separate total people reported from people seen on a specific floor vs unknown locations.`,
+${formatIntakeChecklistForPrompt(getCallIntakeEvents())}
+
+Extraction rules:
+1. callTakerNextQuestion MUST be in Korean (존댓말), ONE short question, following the checklist priority above. If the caller may still be inside, give evacuation guidance first.
+2. Never ask the caller to approach danger or investigate hidden areas.
+3. Distinguish direct observation from relayed reports.
+4. Smoke-only reports must set hasFlames=false.
+5. Separate total people reported from people seen on a specific floor vs unknown locations.
+6. Write extractedFactStatement in Korean.`,
         config: {
           responseMimeType: 'application/json',
           responseSchema: {
@@ -1098,7 +1113,7 @@ Rules:
     const ctEvent: TimelineEvent = {
       id: `evt-ct-${Date.now()}`,
       type: 'call_taker_utterance',
-      speaker: 'AI Call-Taker',
+      speaker: 'AI 접수요원',
       speakerRole: 'call_taker',
       text: replyQuestion,
       createdAt: new Date().toISOString(),
@@ -1113,6 +1128,10 @@ Rules:
     `New caller report: "${callerText}"`,
     ['responder']
   );
+  // 실시간 음성 접수요원에게도 최신 119 체크리스트 상태를 알려 다음 질문 우선순위를 맞춘다
+  injectNonInterruptingDeltaToLiveSessions(formatIntakeChecklistForPrompt(getCallIntakeEvents()), [
+    'caller',
+  ]);
 
   return generateAiCallTakerReply ? replyQuestion : null;
 }
@@ -2027,7 +2046,7 @@ Keep it crisp, scannable, and grounded.`,
       id: idempotencyKey ? `evt-caller-${idempotencyKey}` : `evt-caller-${Date.now()}`,
       idempotencyKey,
       type: 'caller_utterance',
-      speaker: speaker || 'Caller (Jiwon Park)',
+      speaker: speaker || '신고자',
       speakerRole: 'caller',
       text: text.trim(),
       createdAt: new Date().toISOString(),
@@ -2621,7 +2640,7 @@ Keep it crisp, scannable, and grounded.`,
       | 'responder';
     const participantName =
       url.searchParams.get('participant') ||
-      (role === 'caller' ? 'Caller (Marcus Vance)' : 'Responder Unit');
+      (role === 'caller' ? '신고자' : 'Responder Unit');
     const sessionId = `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const originBaseUrl = `${
       (request.headers['x-forwarded-proto'] as string) || 'http'
@@ -2651,6 +2670,7 @@ Keep it crisp, scannable, and grounded.`,
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
+            ...(role === 'caller' ? { languageCode: 'ko-KR' } : {}),
             voiceConfig: {
               prebuiltVoiceConfig: {
                 voiceName: role === 'caller' ? 'Zephyr' : 'Kore',
@@ -2750,7 +2770,7 @@ Keep it crisp, scannable, and grounded.`,
               clientWs.send(
                 JSON.stringify({
                   type: 'transcript',
-                  speaker: role === 'caller' ? 'AI Call-Taker' : 'FireSight Live Support',
+                  speaker: role === 'caller' ? 'AI 접수요원' : 'FireSight Live Support',
                   speakerRole: role === 'caller' ? 'call_taker' : 'firesight_ai',
                   utteranceId: currentOutputUtteranceId,
                   text: accumulatedOutputText.trim(),
@@ -2762,7 +2782,7 @@ Keep it crisp, scannable, and grounded.`,
                 const evt: TimelineEvent = {
                   id: currentOutputUtteranceId,
                   type: 'call_taker_utterance',
-                  speaker: 'AI Call-Taker',
+                  speaker: 'AI 접수요원',
                   speakerRole: 'call_taker',
                   text: accumulatedOutputText.trim(),
                   createdAt: new Date().toISOString(),
@@ -2805,7 +2825,7 @@ Keep it crisp, scannable, and grounded.`,
                   const evt: TimelineEvent = {
                     id: currentOutputUtteranceId,
                     type: 'call_taker_utterance',
-                    speaker: 'AI Call-Taker',
+                    speaker: 'AI 접수요원',
                     speakerRole: 'call_taker',
                     text: accumulatedOutputText.trim(),
                     createdAt: new Date().toISOString(),

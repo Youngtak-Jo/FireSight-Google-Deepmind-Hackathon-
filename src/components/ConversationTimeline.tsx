@@ -876,12 +876,12 @@ function TimelineEventCard({
   // 5. Caller, AI Call-Taker, FireSight AI Answer, or Team Message
   const roleConfig = {
     caller: {
-      badge: 'CALLER',
+      badge: '신고자',
       icon: <PhoneCall className="h-3.5 w-3.5 text-red-400" />,
       cardClass: 'border-red-500/25 bg-red-950/10',
     },
     call_taker: {
-      badge: 'AI CALL-TAKER',
+      badge: '119 접수',
       icon: <Radio className="h-3.5 w-3.5 text-amber-400" />,
       cardClass: 'border-zinc-800 bg-zinc-900/60',
     },
