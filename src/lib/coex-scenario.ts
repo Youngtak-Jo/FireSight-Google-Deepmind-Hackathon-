@@ -4,9 +4,9 @@
  * 시연용 시나리오다. 건물 이름·주소·주변 도로·출입구·연결 역, 소방서·119안전센터 위치는
  * 공개 자료와 구글 지도(2026-11 확인) 기준이다. 호실 배치·인원·기상·도착 시간은 시연을 위한 가정값이다.
  *  - 강남소방서 = 삼성119안전센터와 같은 청사: 서울 강남구 테헤란로 629 (코엑스에서 직선 약 730m)
- *  - 영동119안전센터: 강남구 도산대로 320 (직선 약 2.2km) / 역삼119안전센터: 강남구 역삼로 236 (직선 약 2.2km)
+ *  - 영동119안전센터: 강남구 도산대로 320 (도로 3.1km·약 8분) / 역삼119안전센터: 강남구 역삼로 236 (도로 3.5km·약 9분) — 카카오내비 실측
  *  - 코엑스 동문 정류장(영동대로), 봉은사.코엑스북문 정류장(봉은사로) 위치 기준으로 차량 배치
- *  - 구글 지도는 한국 자동차 길찾기를 지원하지 않아 도착 시간은 직선거리 기반 추정값
+ *  - 도착 시간·도로거리: 카카오모빌리티 길찾기 API 실측(2026-11-28 토요일). 구글 지도는 한국 길찾기 미지원
  *
  * 차량 호출명 규칙 (현장 사용 방식)
  *  - 펌프차: 119안전센터 이름 + '펌프' (삼성펌프, 영동펌프)
@@ -335,8 +335,8 @@ export function createCoexScene(now = Date.now()): SceneSpec {
         placedBy: 'research_candidate',
         risks: ['영동대로 차량 통행 많음 — 진입 차선 통제 필요'],
         outstandingChecks: ['동문 측 송수구·옥내소화전 위치 확인'],
-        routeDistanceMeters: 727,
-        routeDurationSeconds: 180,
+        routeDistanceMeters: 1152,
+        routeDurationSeconds: 200,
         stationName: '강남소방서·삼성119안전센터 (테헤란로 629)',
         buildingRevision: REV,
       },
@@ -350,8 +350,8 @@ export function createCoexScene(now = Date.now()): SceneSpec {
         placedBy: 'research_candidate',
         risks: ['북문 진입로 폭 확인 필요'],
         outstandingChecks: ['봉은사로 쪽 소화전 위치 확인'],
-        routeDistanceMeters: 2240,
-        routeDurationSeconds: 420,
+        routeDistanceMeters: 3138,
+        routeDurationSeconds: 465,
         stationName: '영동119안전센터 (도산대로 320)',
         buildingRevision: REV,
       },
@@ -365,8 +365,8 @@ export function createCoexScene(now = Date.now()): SceneSpec {
         placedBy: 'research_candidate',
         risks: ['연기는 남남동쪽(테헤란로·삼성역 방면)으로 흐름 — 의료소는 북측 유지'],
         outstandingChecks: ['보건소장 도착 시 응급의료소로 전환', '구급차 출입 동선 확보'],
-        routeDistanceMeters: 727,
-        routeDurationSeconds: 180,
+        routeDistanceMeters: 1328,
+        routeDurationSeconds: 239,
         stationName: '삼성구급 · 역삼구급',
         buildingRevision: REV,
       },
@@ -497,12 +497,12 @@ export function createCoexIncidentState(): IncidentState {
         title: '위치·출동 경로',
         subagentName: '위치 조사 AI',
         status: 'completed',
-        summary: '영동대로 513 (북위 37.5119°, 동경 127.0589°) · 강남소방서·삼성119안전센터 직선 0.7km',
+        summary: '영동대로 513 (북위 37.5119°, 동경 127.0589°) · 강남소방서·삼성119안전센터 도로 1.2km(약 3분)',
         sourceIds: [SITE_ID],
         findings: [
           '건물 확인: **코엑스 (스타필드 코엑스몰)**, 서울 강남구 영동대로 513. 강남소방서 관할.',
           '차량 진입: 영동대로 쪽 **동문 GATE**, 봉은사로 쪽 **북문 GATE**. 지하는 **삼성역 5·6번 출구(밀레니엄 광장)**, **봉은사역 7번 출구(아셈플라자)**와 연결.',
-          '출동: **강남소방서·삼성119안전센터**(테헤란로 629, 직선 약 0.7km)에서 **삼성펌프**(선착)·**삼성100**(구조)·**삼성구급**, **영동119안전센터**(도산대로 320)에서 **영동펌프**, **역삼119안전센터**(역삼로 236)에서 **역삼구급**. (도착 시간은 직선거리 기반 추정)',
+          '출동: **강남소방서·삼성119안전센터**(테헤란로 629, 도로 약 1.2km·3분)에서 **삼성펌프**(선착)·**삼성100**(구조)·**삼성구급**, **영동119안전센터**(도산대로 320)에서 **영동펌프**, **역삼119안전센터**(역삼로 236)에서 **역삼구급**. (도착 시간은 카카오내비 도로 경로 실측값 — 실행 시 실시간 교통 탭에서 갱신)',
         ],
         steps: [
           {
@@ -518,7 +518,7 @@ export function createCoexIncidentState(): IncidentState {
             label: '동문·북문 GATE 진입 경로와 차량 배치 위치 계산',
             status: 'completed',
             toolName: 'routes.computeRoutes',
-            detail: '삼성펌프(테헤란로 629) → 동문 GATE 0.7km, 영동펌프(도산대로 320) → 북문 GATE 2.2km',
+            detail: '삼성펌프(테헤란로 629) → 동문 GATE 도로 1.2km·약 3분, 영동펌프(도산대로 320) → 북문 GATE 도로 3.1km·약 8분',
             timestamp: ts(25000),
           },
         ],
@@ -648,26 +648,26 @@ export function createCoexIncidentState(): IncidentState {
         {
           id: 'st-samseong',
           name: '강남소방서·삼성119안전센터 (삼성펌프·삼성구급·삼성100)',
-          address: '서울 강남구 테헤란로 629 · 직선 0.7km · 도착 시간은 추정',
+          address: '서울 강남구 테헤란로 629 · 도로 1.2km · 약 3분 (카카오내비 실측 2026-11-28)',
           coordinates: { lat: 37.51029, lng: 127.06686 },
-          distanceMeters: 727,
-          durationSeconds: 180,
+          distanceMeters: 1152,
+          durationSeconds: 200,
         },
         {
           id: 'st-yeongdong',
           name: '영동119안전센터 (영동펌프·영동구급)',
-          address: '서울 강남구 도산대로 320 · 직선 2.2km · 도착 시간은 추정',
+          address: '서울 강남구 도산대로 320 · 도로 3.1km · 약 8분 (카카오내비 실측 2026-11-28)',
           coordinates: { lat: 37.52206, lng: 127.03694 },
-          distanceMeters: 2240,
-          durationSeconds: 420,
+          distanceMeters: 3138,
+          durationSeconds: 465,
         },
         {
           id: 'st-yeoksam',
           name: '역삼119안전센터 (역삼구급)',
-          address: '서울 강남구 역삼로 236 · 직선 2.2km · 도착 시간은 추정',
+          address: '서울 강남구 역삼로 236 · 도로 3.5km · 약 9분 (카카오내비 실측 2026-11-28)',
           coordinates: { lat: 37.49719, lng: 127.04244 },
-          distanceMeters: 2190,
-          durationSeconds: 420,
+          distanceMeters: 3484,
+          durationSeconds: 552,
         },
       ],
       accessRoads: [
