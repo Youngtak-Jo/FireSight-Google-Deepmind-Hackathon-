@@ -92,6 +92,9 @@ export const ROOM_TYPE_KO: Record<string, string> = {
   lobby: '로비',
   mechanical: '기계실',
   lab: '작업실',
+  kitchen: '주방',
+  dining: '식당 홀',
+  retail: '매장',
   uncertain_area: '구조 미확인 구역',
 };
 
@@ -113,3 +116,11 @@ export const SOURCE_STATUS_KO: Record<string, string> = {
   applied: '반영됨',
   failed: '실패',
 };
+
+/** 층 번호 → 한국어 표기. 지하층은 음수로 저장한다 (-1 → '지하1층', 0 → '지상층', 3 → '3층'). */
+export function floorLabelKo(level?: number | null): string {
+  if (level === undefined || level === null || Number.isNaN(level)) return '층 미상';
+  if (level < 0) return `지하${-level}층`;
+  if (level === 0) return '지상층';
+  return `${level}층`;
+}

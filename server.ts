@@ -31,6 +31,7 @@ import {
   buildExteriorPhotoSvgDataUrl,
   createDefaultSceneForBuilding,
 } from './src/lib/evidence-generator.ts';
+import { createCoexIncidentState } from './src/lib/coex-scenario.ts';
 import {
   KR119_CALL_TAKER_RULES,
   buildRuleBasedCallTakerReply,
@@ -1214,8 +1215,44 @@ async function startServer() {
     return null;
   }
 
-  // Natural 2.8s-paced Mockup Demo runner (The Bradbury Building, 304 S Broadway)
-  async function runBradburyMockupDemo(runId: number, targetState: IncidentState) {
+  // 준비된 자료를 단계별로 보여주는 시연 진행기에서 시나리오마다 바뀌는 진행 문구
+  interface MockupDemoTexts {
+    key: string;
+    ctPartialFirst: string;
+    traceWave1: string;
+    traceWave2: string;
+    aiPartial: string;
+    ctPartial: string;
+  }
+  const BRADBURY_DEMO_TEXTS: MockupDemoTexts = {
+    key: 'bradbury',
+    ctPartialFirst:
+      '⏳ Analyzing caller transcript, extracting "The Bradbury Building (304 S Broadway)" & formulating intake question…',
+    traceWave1:
+      '⏳ Argon Research Agents executing parallel Google Maps geocoding (304 S Broadway), Street View Roman brick & brownstone inspection, HABS L1–L4 blueprint extraction, and LAFD station routing…',
+    traceWave2:
+      '⏳ Geocoded 304 S Broadway (34.0505°N, 118.2479°W) & Downtown LA wind telemetry; extracting HABS L1–L4 CAD floor plans and facade cladding…',
+    aiPartial:
+      '⏳ FireSight AI is synthesizing HABS floor plans, exterior masonry cladding, and rescue access routes…',
+    ctPartial: '⏳ AI Call-Taker is logging occupant locations & verifying stairwell access…',
+  };
+  const COEX_DEMO_TEXTS: MockupDemoTexts = {
+    key: 'coex',
+    ctPartialFirst: '⏳ 신고 내용을 분석하고 있습니다 — "코엑스몰 지하1층 식당가" 위치 확인 중…',
+    traceWave1:
+      '⏳ AI 조사원 5명이 동시에 조사 중: 영동대로 513 위치 확인, 동문·북문 GATE 진입로, 지하1층 시연용 평면도, 주방 위험요소, 삼성동 기상…',
+    traceWave2:
+      '⏳ 위치(북위 37.5119°, 동경 127.0589°)와 기상 확인 완료 — 지하1층 식당가 평면도와 위험요소를 분석하는 중…',
+    aiPartial: '⏳ FireSight AI가 신고 내용, 평면도, 출동대 배치를 종합하는 중…',
+    ctPartial: '⏳ AI 접수요원이 구조대상자 위치를 기록하는 중…',
+  };
+
+  // Natural 2.8s-paced Mockup Demo runner (The Bradbury Building, 304 S Broadway / 코엑스)
+  async function runBradburyMockupDemo(
+    runId: number,
+    targetState: IncidentState,
+    texts: MockupDemoTexts = BRADBURY_DEMO_TEXTS
+  ) {
     const evts = targetState.timeline;
     const totalSteps = evts.length;
 
@@ -1228,7 +1265,7 @@ async function startServer() {
       incidentState.demoStepIndex = 2;
       incidentState.timeline = upsertTimelineEvent(incidentState.timeline, {
         ...ct1,
-        text: '⏳ Analyzing caller transcript, extracting "The Bradbury Building (304 S Broadway)" & formulating intake question…',
+        text: texts.ctPartialFirst,
         isPartial: true,
         createdAt: new Date().toISOString(),
       }).timeline;
@@ -1260,7 +1297,7 @@ async function startServer() {
       const runningTrace: TimelineEvent = {
         ...traceEvt,
         createdAt: new Date().toISOString(),
-        text: '⏳ Argon Research Agents executing parallel Google Maps geocoding (304 S Broadway), Street View Roman brick & brownstone inspection, HABS L1–L4 blueprint extraction, and LAFD station routing…',
+        text: texts.traceWave1,
         traceData: {
           ...traceEvt.traceData,
           status: 'running',
@@ -1277,7 +1314,7 @@ async function startServer() {
       incidentState.weather = targetState.weather;
       incidentState.timeline = upsertTimelineEvent(incidentState.timeline, {
         ...runningTrace,
-        text: '⏳ Geocoded 304 S Broadway (34.0505°N, 118.2479°W) & Downtown LA wind telemetry; extracting HABS L1–L4 CAD floor plans and facade cladding…',
+        text: texts.traceWave2,
         traceData: {
           ...traceEvt.traceData,
           status: 'running',
@@ -1327,9 +1364,7 @@ async function startServer() {
         incidentState.timeline = upsertTimelineEvent(incidentState.timeline, {
           ...evt,
           text:
-            evt.type === 'ai_answer'
-              ? '⏳ FireSight AI is synthesizing HABS floor plans, exterior masonry cladding, and rescue access routes…'
-              : '⏳ AI Call-Taker is logging occupant locations & verifying stairwell access…',
+            evt.type === 'ai_answer' ? texts.aiPartial : texts.ctPartial,
           isPartial: true,
           createdAt: new Date().toISOString(),
         }).timeline;
@@ -1950,13 +1985,19 @@ Keep it crisp, scannable, and grounded.`,
     const runId = activeDemoRunId;
     const { scenario, scenarioId = 'bradbury_mockup', instant = false } = req.body || {};
     const requestedScenario = scenario || scenarioId;
-    const resolvedScenario: 'bradbury_mockup' | 'ferry_live' =
-      requestedScenario === 'ferry_live' ? 'ferry_live' : 'bradbury_mockup';
+    const resolvedScenario: 'bradbury_mockup' | 'ferry_live' | 'coex_mockup' =
+      requestedScenario === 'ferry_live'
+        ? 'ferry_live'
+        : requestedScenario === 'coex_mockup'
+          ? 'coex_mockup'
+          : 'bradbury_mockup';
 
     const targetState =
       resolvedScenario === 'ferry_live'
         ? createFerryBuildingIncidentState()
-        : createInitialIncidentState();
+        : resolvedScenario === 'coex_mockup'
+          ? createCoexIncidentState()
+          : createInitialIncidentState();
 
     const totalSteps = targetState.timeline.length;
 
@@ -1987,7 +2028,9 @@ Keep it crisp, scannable, and grounded.`,
       title:
         resolvedScenario === 'ferry_live'
           ? 'Incoming 911 Call — San Francisco Embarcadero Structure Fire'
-          : 'Incoming 911 Call — Downtown Los Angeles Structure Fire',
+          : resolvedScenario === 'coex_mockup'
+            ? '119 신고 접수 중 — 강남구 삼성동 코엑스몰 화재'
+            : 'Incoming 911 Call — Downtown Los Angeles Structure Fire',
       status: 'active_intake',
       demoScenarioId: resolvedScenario,
       demoRunning: true,
@@ -2007,6 +2050,8 @@ Keep it crisp, scannable, and grounded.`,
 
     if (resolvedScenario === 'ferry_live') {
       void runFerryLiveResearchDemo(runId, targetState);
+    } else if (resolvedScenario === 'coex_mockup') {
+      void runBradburyMockupDemo(runId, targetState, COEX_DEMO_TEXTS);
     } else {
       void runBradburyMockupDemo(runId, targetState);
     }

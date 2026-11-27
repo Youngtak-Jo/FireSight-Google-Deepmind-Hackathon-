@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import type { SceneSpec, FireSmokeZone } from './incident-engine';
+import { isCoexScene, createCoexUrbanEnvironment, createCoexExteriorShell } from './coex-3d.ts';
+import { COEX_REFERENCE_PHOTOS, COEX_GEOCODE_MAP_URL } from './coex-visuals.ts';
 
 export interface BuildingReferencePhoto {
   id: string;
@@ -167,9 +169,21 @@ export const FERRY_GEOCODE_MAP_PREVIEW =
 
 export function getBuildingVisualAssets(buildingName?: string, address?: string) {
   const hay = `${buildingName || ''} ${address || ''}`.toLowerCase();
+  if (hay.includes('coex') || hay.includes('코엑스') || hay.includes('영동대로 513')) {
+    return {
+      isFerry: false,
+      isCoex: true,
+      geocodeMapUrl: COEX_GEOCODE_MAP_URL,
+      coordsLabel: '영동대로 513 · 북위 37.5119°, 동경 127.0589°',
+      geocodeLabel: '영동대로 513 · 북위 37.5119°, 동경 127.0589°',
+      referencePhotos: COEX_REFERENCE_PHOTOS,
+      photos: COEX_REFERENCE_PHOTOS,
+    };
+  }
   if (hay.includes('ferry') || hay.includes('embarcadero')) {
     return {
       isFerry: true,
+      isCoex: false,
       geocodeMapUrl: FERRY_GEOCODE_MAP_PREVIEW,
       coordsLabel: '1 Ferry Building · 37.7955°N, 122.3937°W',
       geocodeLabel: '1 Ferry Building · 37.7955°N, 122.3937°W',
@@ -179,6 +193,7 @@ export function getBuildingVisualAssets(buildingName?: string, address?: string)
   }
   return {
     isFerry: false,
+    isCoex: false,
     geocodeMapUrl: GEOCODE_MAP_PREVIEW_SVG,
     coordsLabel: '304 S Broadway · 34.0505°N, 118.2479°W',
     geocodeLabel: '304 S Broadway · 34.0505°N, 118.2479°W',
@@ -681,6 +696,7 @@ export function createBuildingExteriorShell(
   spec: SceneSpec,
   mode: 'cutaway' | 'full_exterior' | 'wireframe'
 ): THREE.Group {
+  if (isCoexScene(spec)) return createCoexExteriorShell(spec, mode);
   const group = new THREE.Group();
   group.name = 'building_exterior_shell';
 
@@ -1225,6 +1241,7 @@ export function createBuildingExteriorShell(
  * - Street trees and neighboring historic buildings (Adjoining East Brick Block, Million Dollar Theatre West Block, North Loft Annex)
  */
 export function createUrbanContextEnvironment(spec: SceneSpec): THREE.Group {
+  if (isCoexScene(spec)) return createCoexUrbanEnvironment(spec);
   const urban = new THREE.Group();
   urban.name = 'urban_context_environment';
 

@@ -40,6 +40,7 @@ import {
   PROVENANCE_KO,
   ROOM_TYPE_KO,
   PLACED_BY_KO,
+  floorLabelKo,
 } from '../lib/ko-terms';
 
 export interface Selected3DElement {
@@ -81,7 +82,7 @@ export function ThreeSceneWorkspace({
   isDispatcher: boolean;
   onSelectStagingCandidate?: (stagingId: string, status: 'selected' | 'candidate') => void;
   onPlaceCustomStaging?: (type: 'truck_staging' | 'medical_post', localPos: [number, number, number]) => void;
-  onStartDemoScenario?: (scenarioId: 'bradbury_mockup' | 'ferry_live') => void;
+  onStartDemoScenario?: (scenarioId: 'bradbury_mockup' | 'ferry_live' | 'coex_mockup') => void;
 }) {
   const mountRef = React.useRef<HTMLDivElement | null>(null);
   const sceneRef = React.useRef<THREE.Scene | null>(null);
@@ -141,18 +142,26 @@ export function ThreeSceneWorkspace({
     return map;
   }, [incident.sources]);
 
-  // Camera view presets
+  // Camera view presets (defined below) — 건물(envelope)이 바뀌면 기본 시점으로 다시 맞춘다
   const setCameraPreset = React.useCallback(
     (preset: 'isometric' | 'top' | 'north' | 'east' | 'fire') => {
       const cam = cameraRef.current;
       const ctrl = controlsRef.current;
       if (!cam || !ctrl) return;
 
+      // 코엑스처럼 넓고 지하층이 있는 건물은 더 멀리·낮은 곳을 바라보게 한다
+      const isWideBasementScene = incident.scene.envelopeId.includes('coex');
       if (preset === 'isometric') {
-        cam.position.set(-33, 21, 42);
-        ctrl.target.set(0, 6.5, 2);
+        if (isWideBasementScene) {
+          // 남동쪽(영동대로·삼성역 방면)에서 바라봄 — 동문 GATE 앞 차량이 앞쪽에 보이도록
+          cam.position.set(50, 32, 52);
+          ctrl.target.set(-2, -1, 0);
+        } else {
+          cam.position.set(-33, 21, 42);
+          ctrl.target.set(0, 6.5, 2);
+        }
       } else if (preset === 'top') {
-        cam.position.set(0, 52, 0.01);
+        cam.position.set(0, isWideBasementScene ? 72 : 52, 0.01);
         ctrl.target.set(0, 0, 0);
       } else if (preset === 'north') {
         cam.position.set(0, 14, -38);
@@ -169,8 +178,22 @@ export function ThreeSceneWorkspace({
       }
       ctrl.update();
     },
-    [incident.scene.fireZones]
+    [incident.scene.fireZones, incident.scene.envelopeId]
   );
+
+  const framedEnvelopeRef = React.useRef<string>('');
+  React.useEffect(() => {
+    const env = incident.scene.envelopeId;
+    if (!env || incident.scene.floors.length === 0) return;
+    if (framedEnvelopeRef.current === env) return;
+    // 카메라는 아래쪽 초기화 effect에서 만들어지므로 한 프레임 뒤에 맞춘다
+    const raf = requestAnimationFrame(() => {
+      if (!cameraRef.current) return;
+      framedEnvelopeRef.current = env;
+      setCameraPreset('isometric');
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [incident.scene.envelopeId, incident.scene.floors.length, setCameraPreset]);
 
   // Initialize Three.js Scene, Camera, Renderer, and Controls
   React.useEffect(() => {
@@ -452,6 +475,9 @@ export function ThreeSceneWorkspace({
         else if (room.type === 'corridor') roomColor = 0x27272a;
         else if (room.type === 'mechanical') roomColor = 0x713f12;
         else if (room.type === 'lobby') roomColor = 0x14532d;
+        else if (room.type === 'kitchen') roomColor = 0x7f1d1d;
+        else if (room.type === 'dining') roomColor = 0x78350f;
+        else if (room.type === 'retail') roomColor = 0x312e81;
         else if (room.type === 'uncertain_area' || room.uncertainty === 'uncertain_area') {
           roomColor = 0x52525b;
         }
@@ -517,7 +543,7 @@ export function ThreeSceneWorkspace({
         worldAnchorsRef.current.push({
           id: `lbl-room-${room.id}`,
           pos: new THREE.Vector3(room.bounds.x, yBase + rH + 0.35, room.bounds.z),
-          text: `L${floor.level} · ${room.name}`,
+          text: `${floorLabelKo(floor.level)} · ${room.name}`,
           subtext:
             room.uncertainty === 'uncertain_area'
               ? 'Unverified geometry'
@@ -542,7 +568,7 @@ export function ThreeSceneWorkspace({
           worldAnchorsRef.current.push({
             id: `lbl-people-floor-${floor.level}`,
             pos: badgePos.clone().add(new THREE.Vector3(0, 0.8, 0)),
-            text: `구조대상자 ${floorOnlyCount}명 (${floor.level}층, 호실 미상)`,
+            text: `구조대상자 ${floorOnlyCount}명 (${floorLabelKo(floor.level)}, 호실 미상)`,
             subtext: '전달받은 정보 — 정확한 호실 모름',
             variant: 'people',
             floor: floor.level,
@@ -558,8 +584,11 @@ export function ThreeSceneWorkspace({
 
     // 4. Vertical Stairwell Shafts (stair-west-a, stair-east-b)
     for (const stair of spec.stairs) {
-      const minY = (stair.fromFloor - 1) * 4;
-      const maxY = stair.toFloor * 4;
+      // 실제 층 높이(elevationMeters)를 쓰고, 층 정보가 없으면 예전처럼 층당 4m로 계산한다 (지하층 지원)
+      const fromFl = spec.floors.find((f) => f.level === stair.fromFloor);
+      const toFl = spec.floors.find((f) => f.level === stair.toFloor);
+      const minY = fromFl ? fromFl.elevationMeters : (stair.fromFloor - 1) * 4;
+      const maxY = toFl ? toFl.elevationMeters + (toFl.heightMeters || 4) : stair.toFloor * 4;
       const sH = Math.max(4, maxY - minY);
       const stairGeo = new THREE.BoxGeometry(
         stair.position.width,
@@ -592,7 +621,7 @@ export function ThreeSceneWorkspace({
         id: `lbl-stair-${stair.id}`,
         pos: new THREE.Vector3(stair.position.x, maxY + 0.6, stair.position.z),
         text: stair.name,
-        subtext: `계단 ${stair.fromFloor}–${stair.toFloor}층`,
+        subtext: `계단 ${floorLabelKo(stair.fromFloor)}–${floorLabelKo(stair.toFloor)}`,
         variant: 'stair',
         elementRef: elRef,
       });
@@ -705,14 +734,14 @@ export function ThreeSceneWorkspace({
         worldAnchorsRef.current.push({
           id: `lbl-stg-${stg.id}`,
           pos: new THREE.Vector3(stg.localPosition[0], 4.2, stg.localPosition[2]),
-          text: `${stg.status === 'selected' ? '[DEPLOYED] ' : '[STAGING] '}${
+          text: `${stg.status === 'selected' ? '[확정] ' : '[후보] '}${
             stg.type === 'medical_post' ? '+ ' : ''
           }${stg.label}`,
           subtext: stg.routeDurationSeconds
-            ? `ETA ${Math.ceil(stg.routeDurationSeconds / 60)} min · ${
-                stg.stationName || stg.placedBy
+            ? `도착 예상 ${Math.ceil(stg.routeDurationSeconds / 60)}분 · ${
+                stg.stationName || PLACED_BY_KO[stg.placedBy] || stg.placedBy
               }`
-            : stg.placedBy,
+            : PLACED_BY_KO[stg.placedBy] || stg.placedBy,
           variant: 'staging',
           elementRef: elRef,
         });
@@ -774,7 +803,7 @@ export function ThreeSceneWorkspace({
         const rm = fl.rooms.find((r) => r.id === selectedElement.id);
         if (rm) {
           return {
-            title: `${fl.level}층 · ${rm.name}`,
+            title: `${floorLabelKo(fl.level)} · ${rm.name}`,
             badge: rm.uncertainty === 'uncertain_area' ? '구조 미확인' : (ROOM_TYPE_KO[rm.type] ?? rm.type),
             floor: fl.level,
             description: `크기: ${rm.bounds.width}m × ${rm.bounds.depth}m · 층 용도: ${fl.use}`,
@@ -791,8 +820,8 @@ export function ThreeSceneWorkspace({
       if (st) {
         return {
           title: st.name,
-          badge: `계단 ${st.fromFloor}–${st.toFloor}층`,
-          description: `${st.fromFloor}층부터 ${st.toFloor}층까지 연결. 위치 (${st.position.x}m, ${st.position.z}m).`,
+          badge: `계단 ${floorLabelKo(st.fromFloor)}–${floorLabelKo(st.toFloor)}`,
+          description: `${floorLabelKo(st.fromFloor)}부터 ${floorLabelKo(st.toFloor)}까지 연결. 위치 (${st.position.x}m, ${st.position.z}m).`,
           materials: ['2시간 내화 콘크리트 계단실'],
           hazards: [],
           sourceRefs: st.sourceIds,
@@ -876,7 +905,7 @@ export function ThreeSceneWorkspace({
                   : 'bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
               }`}
             >
-              {fl.level}층
+              {floorLabelKo(fl.level)}
             </button>
           ))}
         </div>
@@ -993,10 +1022,19 @@ export function ThreeSceneWorkspace({
                 3D 건물 재구성 대기 중
               </h3>
               <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-                119 신고 접수와 AI 건물 조사를 기다리는 중입니다. <span className="text-zinc-200 font-semibold">데모 1</span>은 준비된 자료를 단계마다 약 2.8초 간격으로 보여주고, <span className="text-sky-300 font-semibold">데모 2</span>는 <span className="text-sky-200 font-semibold">gemini-4-argon</span>으로 구글 검색·사진 분석·지도 API를 실제로 실행합니다.
+                119 신고 접수와 AI 건물 조사를 기다리는 중입니다. <span className="text-red-300 font-semibold">데모 3</span>은 코엑스몰 지하 화재 한국 시나리오입니다. <span className="text-zinc-200 font-semibold">데모 1</span>은 준비된 자료를 단계마다 약 2.8초 간격으로 보여주고, <span className="text-sky-300 font-semibold">데모 2</span>는 <span className="text-sky-200 font-semibold">gemini-4-argon</span>으로 구글 검색·사진 분석·지도 API를 실제로 실행합니다.
               </p>
               {onStartDemoScenario && (
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-center">
+                  <button
+                    type="button"
+                    onClick={() => onStartDemoScenario('coex_mockup')}
+                    data-testid="canvas-start-demo-coex"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-md border border-red-500/60 bg-red-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-red-500"
+                  >
+                    <Flame className="h-3.5 w-3.5" />
+                    데모 3: 코엑스몰 지하 화재
+                  </button>
                   <button
                     type="button"
                     onClick={() => onStartDemoScenario('bradbury_mockup')}
@@ -1398,9 +1436,9 @@ export function ThreeSceneWorkspace({
                       className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-900/80 px-3 py-2"
                     >
                       <div>
-                        <div className="font-semibold text-zinc-100">{fl}층 (호실 미상)</div>
+                        <div className="font-semibold text-zinc-100">{floorLabelKo(Number(fl))} (호실 미상)</div>
                         <div className="text-[11px] text-zinc-400">
-                          전달받은 정보 — 3D에 {fl}층 불확실 표시로 나타냄
+                          전달받은 정보 — 3D에 {floorLabelKo(Number(fl))} 불확실 표시로 나타냄
                         </div>
                       </div>
                       <span className="rounded-sm bg-amber-500/20 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">

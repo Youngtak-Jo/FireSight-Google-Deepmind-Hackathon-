@@ -81,7 +81,7 @@ export const KR119_INTAKE_ITEMS: IntakeItem[] = [
     question:
       '불이 난 곳 주소가 어떻게 되나요? 아파트라면 동·호수까지 말씀해 주세요. 주소를 모르시면 근처 큰 건물, 간판, 전봇대 번호도 괜찮습니다.',
     answerPattern:
-      /[가-힣]+(시|도|군|구)\s?[가-힣\d]+(구|동|읍|면|로|길)|[가-힣\d]+(로|길)\s?\d+|\d+\s?동\s?\d+\s?호|\d+\s?(번지|번길)|[가-힣A-Za-z\d]{2,}(아파트|빌라|빌딩|오피스텔|상가|타워|맨션|공장|창고|학교|병원|교회|마트|시장)|전봇대|간판|건너편|맞은편|사거리|역\s?앞|\d+\s+[A-Za-z .]+(St|Street|Ave|Avenue|Blvd|Road|Rd|Broadway|Building)\b|\baddress\b/i,
+      /[가-힣]+(시|도|군|구)\s?[가-힣\d]+(구|동|읍|면|로|길)|[가-힣\d]+(로|길)\s?\d+|\d+\s?동\s?\d+\s?호|\d+\s?(번지|번길)|[가-힣A-Za-z\d]{2,}(아파트|빌라|빌딩|오피스텔|상가|타워|맨션|공장|창고|학교|병원|교회|마트|시장|몰|센터|백화점|호텔)|전봇대|간판|건너편|맞은편|사거리|역\s?앞|\d+\s+[A-Za-z .]+(St|Street|Ave|Avenue|Blvd|Road|Rd|Broadway|Building)\b|\baddress\b/i,
     askPattern: /주소|어디|위치|장소|address|where|location/i,
   },
   {
@@ -127,7 +127,7 @@ export const KR119_INTAKE_ITEMS: IntakeItem[] = [
     label: '부상자',
     question: '다친 분이 있나요? 화상을 입거나 연기를 마신 분이 있으면 알려 주세요.',
     answerPattern:
-      /다친|다쳤|부상|화상|쓰러|의식|숨\s?(을|쉬)|기침|피\s?(가|를)|연기\s?마|안\s?다쳤|다친\s?사람\s?없|injur|hurt|burned|unconscious|bleed|no one (is )?hurt/i,
+      /다친|다쳤|부상|화상|쓰러|의식|숨\s?(을|쉬)|기침|피\s?(가|를)|연기\s?마|마셨|마심|안\s?다쳤|다친\s?사람\s?없|injur|hurt|burned|unconscious|bleed|no one (is )?hurt/i,
     askPattern: /다친|부상|화상|injur|hurt/i,
   },
   {
@@ -156,7 +156,7 @@ export const KR119_INTAKE_ITEMS: IntakeItem[] = [
     question:
       '마지막으로 신고자분 성함과 건물과의 관계(거주자, 직원, 지나가던 분 등)를 알려 주세요.',
     answerPattern:
-      /제\s?이름|이름은|성함은|사는\s?(사람|주민)|살아요|거주|주민|직원|주인|사장|관리인|관리소|경비|지나가|행인|이웃|옆집|세입자|my name|resident|employee|owner|neighbor|passerby|building manager/i,
+      /제\s?이름|이름은|성함은|사는\s?(사람|주민)|살아요|거주|주민|직원(이에요|입니다|이고)|여기서\s?일|주인|사장|관리인|관리소|경비|지나가|행인|이웃|옆집|세입자|my name|resident|employee|owner|neighbor|passerby|building manager/i,
     askPattern: /성함|이름|관계|who are you|your name|relationship/i,
   },
 ];

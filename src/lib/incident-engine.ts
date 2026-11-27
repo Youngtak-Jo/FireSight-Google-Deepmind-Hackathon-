@@ -61,7 +61,7 @@ export interface SourceDocument {
   title: string;
   originalTitle?: string;
   url: string;
-  mimeType: 'application/pdf' | 'image/png' | 'image/jpeg' | 'text/html';
+  mimeType: 'application/pdf' | 'image/png' | 'image/jpeg' | 'image/svg+xml' | 'text/html';
   status: 'discovered' | 'retrieved' | 'analyzed' | 'applied' | 'failed';
   byteLength?: number;
   sha256?: string;
@@ -116,7 +116,18 @@ export interface SceneRoom {
   name: string;
   floor: number;
   bounds: { x: number; z: number; width: number; depth: number };
-  type: 'office' | 'corridor' | 'stairwell' | 'server_room' | 'lobby' | 'mechanical' | 'lab' | 'uncertain_area';
+  type:
+    | 'office'
+    | 'corridor'
+    | 'stairwell'
+    | 'server_room'
+    | 'lobby'
+    | 'mechanical'
+    | 'lab'
+    | 'kitchen'
+    | 'dining'
+    | 'retail'
+    | 'uncertain_area';
   uncertainty?: 'verified_plan' | 'approximate_geometry' | 'uncertain_area';
   connectedRoomIds: string[];
   doors: Array<{ id: string; x: number; z: number; orientation: 'ns' | 'ew'; connectsTo?: string }>;
@@ -316,7 +327,7 @@ export interface IncidentState {
   buildingRevision: number;
   title: string;
   status: 'standby' | 'active_intake' | 'researching' | 'monitoring';
-  demoScenarioId?: 'standby' | 'bradbury_mockup' | 'ferry_live';
+  demoScenarioId?: 'standby' | 'bradbury_mockup' | 'ferry_live' | 'coex_mockup';
   demoRunning?: boolean;
   demoStepIndex?: number;
   demoTotalSteps?: number;

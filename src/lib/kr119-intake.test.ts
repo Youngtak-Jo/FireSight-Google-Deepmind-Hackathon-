@@ -140,3 +140,16 @@ test('전체 접수 흐름: 모든 항목을 차례로 묻고 마지막에 마�
   assert.equal(replies[replies.length - 1], CLOSING_LINE);
   assert.equal(new Set(replies).size, replies.length, '같은 질문을 반복하지 않는다');
 });
+
+test('코엑스 데모 신고: "코엑스몰"을 위치로, "연기를 많이 마셨다"를 부상자로 인식하고 "주방 직원"은 신고자 정보로 보지 않는다', () => {
+  const first = [caller('119죠? 불났어요! 코엑스몰 지하 1층 식당가인데요, 한식당 주방에서 불길이 확 올라오고 검은 연기가 엄청 나와요!')];
+  for (const id of ['incident_type', 'location', 'fire_smoke', 'fire_floor']) {
+    assert.equal(statusOf(first, id), 'covered', id);
+  }
+  const second = [
+    ...first,
+    caller('저는 별마당도서관 쪽으로 빠져나왔어요. 주방 직원 한 분은 연기를 많이 마셨다고 했어요.'),
+  ];
+  assert.equal(statusOf(second, 'injuries'), 'covered');
+  assert.equal(statusOf(second, 'caller_info'), 'pending');
+});

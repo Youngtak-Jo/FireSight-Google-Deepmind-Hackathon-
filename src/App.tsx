@@ -300,13 +300,15 @@ export default function App() {
   };
 
   const handleStartDemo = React.useCallback(
-    async (scenario: 'bradbury_mockup' | 'ferry_live') => {
+    async (scenario: 'bradbury_mockup' | 'ferry_live' | 'coex_mockup') => {
       setSelectedFloor('all');
       setSelected3DElement(null);
       setWorkspaceMode('3d');
       setMobileTab('3d');
       if (scenario === 'ferry_live') {
         setResponderName('SFFD Truck 1 · Capt. Vance');
+      } else if (scenario === 'coex_mockup') {
+        setResponderName('삼성펌프 · 선착대');
       } else {
         setResponderName('LAFD Engine 3 · Capt. Rivera');
       }

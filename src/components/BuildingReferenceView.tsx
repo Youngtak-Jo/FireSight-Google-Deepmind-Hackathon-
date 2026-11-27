@@ -12,6 +12,8 @@ import {
   getBuildingVisualAssets,
   type BuildingReferencePhoto,
 } from '../lib/three-assets';
+import { floorLabelKo } from '../lib/ko-terms';
+import { COEX_MATERIAL_SPECS } from '../lib/coex-visuals';
 import type { IncidentState, SourceDocument } from '../lib/incident-engine';
 
 const BRADBURY_MATERIAL_SPECS = [
@@ -105,7 +107,7 @@ export function BuildingReferenceView({
   }, [visualAssets]);
 
   const [selectedPlanPage, setSelectedPlanPage] = React.useState<number>(
-    visualAssets.isFerry ? 2 : 3
+    visualAssets.isCoex ? -1 : visualAssets.isFerry ? 2 : 3
   );
   const [activeTab, setActiveTab] = React.useState<'photos' | 'floorplans' | 'materials'>('photos');
 
@@ -120,7 +122,11 @@ export function BuildingReferenceView({
     return pages.find((p) => p.pageNumber === selectedPlanPage) || pages[0];
   }, [floorplanSource, selectedPlanPage]);
 
-  const materialSpecs = visualAssets.isFerry ? FERRY_MATERIAL_SPECS : BRADBURY_MATERIAL_SPECS;
+  const materialSpecs = visualAssets.isCoex
+    ? COEX_MATERIAL_SPECS
+    : visualAssets.isFerry
+      ? FERRY_MATERIAL_SPECS
+      : BRADBURY_MATERIAL_SPECS;
 
   return (
     <div
@@ -145,7 +151,7 @@ export function BuildingReferenceView({
                   className="inline-flex items-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25"
                 >
                   <Box className="h-3 w-3" />
-                  3D에서 {activePlanObj.pageNumber}층 보기
+                  3D에서 {floorLabelKo(activePlanObj.pageNumber)} 보기
                 </button>
                 {floorplanSource && (
                   <button
@@ -341,7 +347,7 @@ export function BuildingReferenceView({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-semibold text-zinc-100">
-                    건축 도면 (1–4층)
+                    건축 도면 ({floorplanSource?.pages?.length ?? 0}장)
                   </h3>
                   <p className="text-[11px] text-zinc-400">
                     도면을 누르면 크게 보거나 3D에서 해당 층으로 이동할 수 있습니다
@@ -370,7 +376,7 @@ export function BuildingReferenceView({
                             className="h-full w-full object-cover"
                           />
                           <span className="absolute top-2 left-2 rounded-xs bg-zinc-950/90 border border-zinc-700 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-sky-300">
-                            도면 A-10{page.pageNumber}
+                            도면 · {floorLabelKo(page.pageNumber)}
                           </span>
                         </div>
                         <div className="p-2.5 space-y-1">
@@ -392,7 +398,7 @@ export function BuildingReferenceView({
                           className="inline-flex flex-1 items-center justify-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/15 px-2 py-1 text-[11px] font-medium text-amber-200 hover:bg-amber-500/25"
                         >
                           <Box className="h-3 w-3" />
-                          3D에서 {page.pageNumber}층 보기
+                          3D에서 {floorLabelKo(page.pageNumber)} 보기
                         </button>
                         {floorplanSource && (
                           <button

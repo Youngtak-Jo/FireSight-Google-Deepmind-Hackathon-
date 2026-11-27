@@ -18,6 +18,7 @@ import {
 import { DialogRoot, DialogContent, MarkdownText } from './ui/base-primitives';
 import type { IncidentState } from '../lib/incident-engine';
 import type { LiveTranscriptItem } from '../lib/use-live-session';
+import { floorLabelKo } from '../lib/ko-terms';
 
 export function ResponderToolbar({
   incident,
@@ -109,9 +110,9 @@ export function ResponderToolbar({
       const matchedFloor = incident.scene.floors.find((f) => f.level === floorNum);
       const matchedRoom = matchedFloor?.rooms.find((r) => r.id === reportRoomId);
       const placeLabel = matchedRoom
-        ? `${floorNum}층 · ${matchedRoom.name}`
+        ? `${floorLabelKo(floorNum)} · ${matchedRoom.name}`
         : floorNum
-        ? `${floorNum}층 (호실 미상)`
+        ? `${floorLabelKo(floorNum)} (호실 미상)`
         : '층 미상 / 건물 외부';
 
       await onPublishFieldReport({
@@ -405,7 +406,7 @@ export function ResponderToolbar({
                   <option value="">층 미상 / 건물 외부</option>
                   {incident.scene.floors.map((fl) => (
                     <option key={fl.level} value={String(fl.level)}>
-                      {fl.level}층 — {fl.name}
+                      {floorLabelKo(fl.level)} — {fl.name}
                     </option>
                   ))}
                 </select>

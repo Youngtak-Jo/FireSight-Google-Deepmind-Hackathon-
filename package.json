@@ -8,7 +8,7 @@
     "start": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/lib/incident-engine.test.ts src/lib/kr119-intake.test.ts",
+    "test": "node --test src/lib/incident-engine.test.ts src/lib/kr119-intake.test.ts src/lib/coex-scenario.test.ts",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
   },

@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { DialogRoot, DialogContent } from './ui/base-primitives';
 import type { SourceDocument } from '../lib/incident-engine';
-import { SOURCE_STATUS_KO } from '../lib/ko-terms';
+import { SOURCE_STATUS_KO, floorLabelKo } from '../lib/ko-terms';
 
 export function SourcePreviewDialog({
   source,
@@ -91,7 +91,7 @@ export function SourcePreviewDialog({
                   className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300 hover:bg-amber-500/20"
                 >
                   <Layers className="h-3.5 w-3.5" />
-                  3D에서 {source.matchedFloor}층 보기
+                  3D에서 {floorLabelKo(source.matchedFloor)} 보기
                 </button>
               )}
               {source.url && (
@@ -134,7 +134,7 @@ export function SourcePreviewDialog({
                       : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
                   }`}
                 >
-                  {p.pageNumber}쪽: {p.label}
+                  {floorLabelKo(p.pageNumber)} 도면: {p.label}
                 </button>
               ))}
             </div>

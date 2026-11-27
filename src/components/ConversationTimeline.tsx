@@ -43,7 +43,7 @@ import type {
   Perspective,
 } from '../lib/incident-engine';
 import type { Selected3DElement } from './ThreeSceneWorkspace';
-import { DELIVERY_STATUS_KO } from '../lib/ko-terms';
+import { DELIVERY_STATUS_KO, floorLabelKo } from '../lib/ko-terms';
 import {
   BUILDING_REFERENCE_PHOTOS,
   GEOCODE_MAP_PREVIEW_SVG,
@@ -72,7 +72,7 @@ export function ConversationTimeline({
   onFocus3DElement: (floor?: number, element?: Selected3DElement) => void;
   onTriggerResearch?: () => void;
   onOpenBuildingReference?: () => void;
-  onStartDemo?: (scenario: 'bradbury_mockup' | 'ferry_live') => void;
+  onStartDemo?: (scenario: 'bradbury_mockup' | 'ferry_live' | 'coex_mockup') => void;
   onResetStandby?: () => void;
 }) {
   const [draft, setDraft] = React.useState('');
@@ -228,6 +228,18 @@ export function ConversationTimeline({
           <div className="flex items-center gap-1">
             <button
               type="button"
+              onClick={() => onStartDemo('coex_mockup')}
+              data-testid="subheader-demo-coex"
+              className={`rounded-xs border px-1.5 py-0.5 font-mono text-[10px] transition ${
+                incident.demoScenarioId === 'coex_mockup'
+                  ? 'border-red-500/60 bg-red-500/20 text-red-200 font-semibold'
+                  : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              데모 3: 코엑스
+            </button>
+            <button
+              type="button"
               onClick={() => onStartDemo('bradbury_mockup')}
               data-testid="subheader-demo-bradbury"
               className={`rounded-xs border px-1.5 py-0.5 font-mono text-[10px] transition ${
@@ -294,6 +306,28 @@ export function ConversationTimeline({
 
             {onStartDemo && (
               <div className="space-y-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => onStartDemo('coex_mockup')}
+                  data-testid="chat-start-demo-coex"
+                  className="w-full text-left rounded-md border border-red-500/50 bg-red-950/25 hover:bg-red-950/45 p-3 transition group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] font-semibold uppercase text-red-300">
+                      ▶ 데모 3 시작 · 한국 시나리오
+                    </span>
+                    <span className="rounded-xs bg-red-500 px-2 py-0.5 font-mono text-[10px] font-bold text-zinc-950">
+                      API 키 없이 실행
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs font-bold text-zinc-100">
+                    코엑스몰 지하1층 식당가 화재 (서울 강남구 영동대로 513)
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-zinc-400">
+                    주말 오후 · 강남소방서 관할 · 삼성펌프 선착, 삼성100 구조, 구조대상자 6명(위치 미상 2명), 지하 연기가 삼성역 연결통로로 이동. 도면·외관은 시연용 도식.
+                  </p>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => onStartDemo('bradbury_mockup')}
@@ -651,7 +685,7 @@ function TimelineEventCard({
                     </div>
                     <div className="px-1.5 py-1 border-t border-zinc-800/80">
                       <div className="font-mono text-[9px] font-semibold text-sky-300">
-                        {pg.pageNumber}층
+                        {floorLabelKo(pg.pageNumber)}
                       </div>
                       <div className="truncate text-[9px] text-zinc-400">
                         {pg.label.replace(/^Level \d+ — /, '')}
@@ -825,7 +859,9 @@ function TimelineEventCard({
                   <span>
                     {fr.aiVisualSummary.startsWith('⏳')
                       ? 'AI가 사진을 분석하는 중…'
-                      : 'AI 사진 분석 요약 (gemini-4-argon)'}
+                      : fr.photoDataUrl
+                        ? 'AI 사진 분석 요약 (gemini-4-argon)'
+                        : 'AI 분석 요약'}
                   </span>
                 </div>
                 <MarkdownText content={fr.aiVisualSummary} className="text-[11px] text-zinc-300" />

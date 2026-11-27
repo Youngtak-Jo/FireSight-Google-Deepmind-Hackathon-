@@ -71,6 +71,26 @@ export function MapWorkspace({
     [incident.building?.nearbyStations, selectedMarkerId]
   );
 
+  // 지도 위 도로 이름: 코엑스 데모는 실제 주변 도로, 그 외(기존 미국 데모)는 원래 표기 유지
+  const isCoexMap = /코엑스|coex/i.test(`${incident.building?.name || ''} ${incident.building?.address || ''}`);
+  const mapLabels = isCoexMap
+    ? {
+        east: '영동대로 (동문 GATE · 삼성펌프)',
+        north: '봉은사로 (북문 GATE · 임시응급의료소)',
+        south: '테헤란로 (삼성역 방면)',
+        west: '아셈로',
+        plaza: '삼성역 연결통로 (지하 · 연기 이동 방향)',
+        stream: '탄천',
+      }
+    : {
+        east: 'SOUTH BROADWAY (MAIN ENTRANCE & AERIAL STAGING)',
+        north: 'WEST 3RD STREET (SANDSTONE SERVICE WALL & DUAL FDC)',
+        south: '',
+        west: '',
+        plaza: '3RD & BROADWAY UPWIND PLAZA (EMS TRIAGE)',
+        stream: 'TANCHEON STREAM',
+      };
+
   const windFromDeg = incident.weather.windDirectionFromDeg ?? 290;
   const windToDeg = (windFromDeg + 180) % 360;
 
@@ -166,7 +186,7 @@ export function MapWorkspace({
             fontFamily="IBM Plex Mono, monospace"
             fontSize="11"
           >
-            TANCHEON STREAM
+            {mapLabels.stream}
           </text>
 
           {/* Major Arterial Road Network around 417 Yeongdong-daero (Gangnam-gu) */}
@@ -227,7 +247,7 @@ export function MapWorkspace({
             fontWeight="600"
             transform={`rotate(90, ${buildingPt.x + 76 * zoom}, 185)`}
           >
-            SOUTH BROADWAY (MAIN ENTRANCE &amp; AERIAL STAGING)
+            {mapLabels.east}
           </text>
           <text
             x="120"
@@ -237,17 +257,42 @@ export function MapWorkspace({
             fontSize="10"
             fontWeight="600"
           >
-            WEST 3RD STREET (SANDSTONE SERVICE WALL &amp; DUAL FDC)
+            {mapLabels.north}
           </text>
           <text
-            x={buildingPt.x - 185 * zoom}
+            x={isCoexMap ? buildingPt.x + 62 * zoom : buildingPt.x - 185 * zoom}
             y={buildingPt.y + 64 * zoom}
             fill="#64748b"
             fontFamily="IBM Plex Mono, monospace"
             fontSize="10"
           >
-            3RD &amp; BROADWAY UPWIND PLAZA (EMS TRIAGE)
+            {mapLabels.plaza}
           </text>
+          {mapLabels.south && (
+            <text
+              x="120"
+              y={buildingPt.y + 92 * zoom}
+              fill="#94a3b8"
+              fontFamily="IBM Plex Mono, monospace"
+              fontSize="10"
+              fontWeight="600"
+            >
+              {mapLabels.south}
+            </text>
+          )}
+          {mapLabels.west && (
+            <text
+              x={buildingPt.x - 112 * zoom}
+              y="185"
+              fill="#94a3b8"
+              fontFamily="IBM Plex Mono, monospace"
+              fontSize="10"
+              fontWeight="600"
+              transform={`rotate(90, ${buildingPt.x - 112 * zoom}, 185)`}
+            >
+              {mapLabels.west}
+            </text>
+          )}
 
           {/* Downwind Smoke Plume Cone (Aligned with Meteorological Wind FROM WNW -> Blowing ESE) */}
           <g
@@ -343,10 +388,9 @@ export function MapWorkspace({
           {incident.scene.stagingCandidates.map((stg, idx) => {
             const pt = projectLatLng(stg.coordinates.lat, stg.coordinates.lng);
             // Place pins at clear, non-overlapping tactical positions around the footprint
-            const offsetX =
-              pt.x + (idx === 0 ? 52 : idx === 1 ? -95 : 105);
-            const offsetY =
-              pt.y + (idx === 0 ? 64 : idx === 1 ? 18 : -16);
+            // 기존 미국 데모는 핀이 겹치지 않도록 고정 간격을 두고, 코엑스는 실제 좌표 위치에 그대로 표시
+            const offsetX = isCoexMap ? pt.x : pt.x + (idx === 0 ? 52 : idx === 1 ? -95 : 105);
+            const offsetY = isCoexMap ? pt.y : pt.y + (idx === 0 ? 64 : idx === 1 ? 18 : -16);
             const isSelected = stg.status === 'selected';
             const fill =
               stg.type === 'truck_staging'
