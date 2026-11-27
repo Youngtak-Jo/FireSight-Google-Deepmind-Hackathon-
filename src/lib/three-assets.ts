@@ -1920,7 +1920,7 @@ export function createRealisticFireAndSmokeZone(
 }
 
 /**
- * Builds articulated 3D Human Rescue Models (요구조자) standing & waving for help inside a room,
+ * Builds articulated 3D Human Rescue Models (구조대상자) standing & waving for help inside a room,
  * replacing simple spheres with recognizable multi-part 3D human figures + rescue locator ring!
  */
 export function createTrappedPerson3DAsset(

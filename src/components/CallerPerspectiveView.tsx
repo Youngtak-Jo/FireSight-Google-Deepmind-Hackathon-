@@ -23,7 +23,7 @@ import type { IncidentState } from '../lib/incident-engine';
 const DEMO_CALLER_STATEMENTS: Array<{ label: string; text: string; tone?: 'warn' }> = [
   { label: '① 화재 발생', text: '불이 났어요! 3층짜리 빌라 2층 창문에서 검은 연기가 나와요.' },
   { label: '② 주소', text: '화성시 동탄대로 123, 그린빌라예요.' },
-  { label: '③ 요구조자', text: '저는 밖으로 나왔는데 3층에 할머니 한 분이 아직 안 나오셨어요.' },
+  { label: '③ 구조대상자', text: '저는 밖으로 나왔는데 3층에 할머니 한 분이 아직 안 나오셨어요.' },
   { label: '④ 모르겠음', text: '잘 모르겠어요.' },
   { label: '⑤ 진입 장애', text: '1층 필로티 주차장에 차가 꽉 차 있어서 소방차 들어가기 힘들 것 같아요.' },
   { label: '⚠ 갇힘', text: '연기가 방으로 들어와서 못 나가겠어요!', tone: 'warn' },

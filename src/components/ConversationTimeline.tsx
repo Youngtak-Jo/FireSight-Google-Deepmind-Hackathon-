@@ -312,7 +312,7 @@ export function ConversationTimeline({
                     The Bradbury Building (304 S Broadway, Los Angeles)
                   </div>
                   <p className="mt-0.5 text-[11px] text-zinc-400">
-                    3층 서쪽 전기실 화재, 천창이 있는 5층 아트리움 건물, 요구조자 5명(3D 인물 표시), LA 소방대 현장 사진 업로드.
+                    3층 서쪽 전기실 화재, 천창이 있는 5층 아트리움 건물, 구조대상자 5명(3D 인물 표시), LA 소방대 현장 사진 업로드.
                   </p>
                 </button>
 
@@ -782,7 +782,7 @@ function TimelineEventCard({
       >
         <MessageHeader
           speaker={fr.reporterName}
-          badge={`현장보고 · ${fr.placeLabel || '현장'}`}
+          badge={`상황보고 · ${fr.placeLabel || '현장'}`}
           timestamp={event.createdAt}
           captureTime={fr.captureTime}
           icon={<Camera className="h-3.5 w-3.5 text-emerald-400" />}
@@ -799,7 +799,7 @@ function TimelineEventCard({
             <div className="overflow-hidden rounded-md border border-zinc-800 bg-zinc-950">
               <img
                 src={fr.photoDataUrl}
-                alt={`${fr.reporterName} 현장보고 사진`}
+                alt={`${fr.reporterName} 상황보고 사진`}
                 className="h-28 w-full object-cover"
               />
             </div>

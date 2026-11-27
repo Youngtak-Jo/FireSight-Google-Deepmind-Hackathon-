@@ -43,7 +43,7 @@ export function ShareIncidentDialog({
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent
         title="현장대원에게 사건 화면 공유"
-        description="대원이 휴대폰으로 이 링크를 열면 현장대원 화면으로 바로 들어와 3D 건물, 실시간 음성·카메라 지원, 현장보고를 함께 쓸 수 있습니다."
+        description="대원이 휴대폰으로 이 링크를 열면 현장대원 화면으로 바로 들어와 3D 건물, 실시간 음성·카메라 지원, 상황보고를 함께 쓸 수 있습니다."
       >
         <div className="space-y-4 text-xs">
           <div className="rounded-md border border-zinc-800 bg-zinc-900/70 p-3 space-y-2">
@@ -184,7 +184,7 @@ export function ReconcileFactsDialog({
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent
         title="사건 정보 정정"
-        description="건물 정보, 요구조자 현황, 화염·연기 관찰 내용을 고치면 사건 화면 전체에 반영됩니다."
+        description="건물 정보, 구조대상자 현황, 화염·연기 관찰 내용을 고치면 사건 화면 전체에 반영됩니다."
       >
         <div className="space-y-4 text-xs">
           {/* Sub-navigation */}
@@ -200,7 +200,7 @@ export function ReconcileFactsDialog({
               }`}
             >
               <Users className="h-3.5 w-3.5" />
-              요구조자 현황
+              구조대상자 현황
             </button>
             <button
               type="button"

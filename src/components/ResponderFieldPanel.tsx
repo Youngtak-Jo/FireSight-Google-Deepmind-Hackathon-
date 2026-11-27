@@ -185,7 +185,7 @@ export function ResponderToolbar({
             className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-500"
           >
             <FilePlus2 className="h-3.5 w-3.5" />
-            현장보고 공유
+            상황보고 공유
           </button>
         </div>
       </div>
@@ -305,7 +305,7 @@ export function ResponderToolbar({
             <div className="max-h-60 overflow-y-auto space-y-2 rounded-md border border-zinc-800 bg-zinc-950 p-3">
               {liveSession.transcripts.length === 0 ? (
                 <p className="text-center text-xs text-zinc-500 py-4">
-                  실시간 음성을 시작하거나 아래에 질문을 입력하세요. AI는 정보 수정 #{incident.buildingRevision} 기준의 사건 정보(층, 계단, 위험요소, 요구조자 수)를 모두 알고 있습니다.
+                  실시간 음성을 시작하거나 아래에 질문을 입력하세요. AI는 정보 수정 #{incident.buildingRevision} 기준의 사건 정보(층, 계단, 위험요소, 구조대상자 수)를 모두 알고 있습니다.
                 </p>
               ) : (
                 liveSession.transcripts.map((t) => (
@@ -371,7 +371,7 @@ export function ResponderToolbar({
       {/* 2. Share Field Report Dialog */}
       <DialogRoot open={reportModalOpen} onOpenChange={setReportModalOpen}>
         <DialogContent
-          title="사건방에 현장보고 올리기"
+          title="사건방에 상황보고 올리기"
           description="현장 사진, 위치, 대원이 직접 본 내용을 올립니다. AI 사진 분석은 따로 붙고, 대원이 쓴 내용은 바뀌지 않습니다."
         >
           <form onSubmit={handleSubmitFieldReport} className="space-y-3 text-xs">
@@ -440,7 +440,7 @@ export function ResponderToolbar({
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
                 data-testid="field-report-description-input"
-                placeholder="본 상황, 연기, 문 상태, 요구조자 접촉 여부 등을 적어 주세요…"
+                placeholder="본 상황, 연기, 문 상태, 구조대상자 접촉 여부 등을 적어 주세요…"
                 className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-2.5 text-xs text-zinc-100 focus:border-emerald-500 focus:outline-none"
               />
             </div>
@@ -460,7 +460,7 @@ export function ResponderToolbar({
                 ) : (
                   <Send className="h-3.5 w-3.5" />
                 )}
-                현장보고 올리기
+                상황보고 올리기
               </button>
             </div>
           </form>

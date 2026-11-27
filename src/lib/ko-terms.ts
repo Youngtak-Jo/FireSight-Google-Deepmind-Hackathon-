@@ -5,8 +5,8 @@
  *  - Dispatcher → 상황실 / Caller → 신고자 / Responder → 현장대원
  *  - Staging (pin/candidate) → 차량 배치 위치
  *  - Medical Post / EMS Triage → 임시응급의료소 (보건소장 도착 후 응급의료소로 승격 — 승격 기능은 추후)
- *  - People Accountability / Rescues Needed → 요구조자 현황 / 요구조자
- *  - Field Report → 현장보고
+ *  - People Accountability / Rescues Needed → 구조대상자 현황 / 구조대상자
+ *  - Field Report → 상황보고
  *  - Fire/Smoke zone → 화염·연기 구역, Smoke only → 연기만 (화염 없음)
  *  - Approach route → 출동 경로
  *  - Revision (REV #) → 정보 수정 #

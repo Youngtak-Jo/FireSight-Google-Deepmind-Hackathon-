@@ -542,7 +542,7 @@ export function ThreeSceneWorkspace({
           worldAnchorsRef.current.push({
             id: `lbl-people-floor-${floor.level}`,
             pos: badgePos.clone().add(new THREE.Vector3(0, 0.8, 0)),
-            text: `요구조자 ${floorOnlyCount}명 (${floor.level}층, 호실 미상)`,
+            text: `구조대상자 ${floorOnlyCount}명 (${floor.level}층, 호실 미상)`,
             subtext: '전달받은 정보 — 정확한 호실 모름',
             variant: 'people',
             floor: floor.level,
@@ -598,7 +598,7 @@ export function ThreeSceneWorkspace({
       });
     }
 
-    // 5. Articulated 3D Human Rescue Models (요구조자) in Confirmed Rooms
+    // 5. Articulated 3D Human Rescue Models (구조대상자) in Confirmed Rooms
     if (showPeople) {
       for (const [roomId, info] of Object.entries(incident.peopleSummary.preciseRoomCounts)) {
         if (selectedFloor !== 'all' && selectedFloor !== info.floor) continue;
@@ -632,7 +632,7 @@ export function ThreeSceneWorkspace({
         worldAnchorsRef.current.push({
           id: `lbl-people-room-${roomId}`,
           pos: personPos.clone().add(new THREE.Vector3(0, 2.75, 0)),
-          text: `요구조자 ${info.count}명 · ${roomObj.name}`,
+          text: `구조대상자 ${info.count}명 · ${roomObj.name}`,
           subtext: '창가에서 구조 요청 중',
           variant: 'people',
           floor: info.floor,
@@ -927,7 +927,7 @@ export function ThreeSceneWorkspace({
             }`}
           >
             <Users className="h-3 w-3" />
-            요구조자 ({incident.peopleSummary.totalReported})
+            구조대상자 ({incident.peopleSummary.totalReported})
           </button>
           <button
             type="button"
@@ -1292,11 +1292,11 @@ export function ThreeSceneWorkspace({
               type="button"
               onClick={() => setActiveFabDialog('people')}
               data-testid="people-accountability-hud"
-              title="요구조자 현황·위치 보기"
+              title="구조대상자 현황·위치 보기"
               className="inline-flex h-8 items-center gap-1.5 rounded-full border border-cyan-500/40 bg-zinc-900/95 px-3 text-xs font-medium text-cyan-200 shadow-md transition hover:border-cyan-400 hover:bg-zinc-800"
             >
               <Users className="h-3.5 w-3.5 text-cyan-400" />
-              <span>요구조자</span>
+              <span>구조대상자</span>
               <span className="rounded-full bg-cyan-500/20 px-1.5 py-0.2 font-mono text-[11px] font-bold text-cyan-300">
                 {incident.peopleSummary.totalReported}
               </span>
@@ -1341,7 +1341,7 @@ export function ThreeSceneWorkspace({
       >
         {activeFabDialog === 'people' && (
           <DialogContent
-            title="요구조자 현황·위치"
+            title="구조대상자 현황·위치"
             description="호실까지 확인된 인원, 층만 아는 인원, 위치를 모르는 인원을 나눠서 보여줍니다."
           >
             <div className="space-y-3 text-xs">

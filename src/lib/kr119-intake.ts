@@ -3,7 +3,7 @@
  *
  * 접수 순서 원칙
  *  1) 출동지령에 꼭 필요한 정보 먼저: 재난 유형(무엇이 타는지) → 발생 위치(주소·동/호수·층)
- *  2) 인명: 신고자 본인 안전 → 대피하지 못한 사람(요구조자) → 부상자
+ *  2) 인명: 신고자 본인 안전 → 대피하지 못한 사람(구조대상자) → 부상자
  *  3) 현장 상황: 불꽃/연기 → 발화 층·위치 → 위험물 → 소방차 진입 여건
  *  4) 신고자 정보: 이름·건물과의 관계 (전화번호는 발신번호로 자동 확인)
  *
@@ -96,12 +96,12 @@ export const KR119_INTAKE_ITEMS: IntakeItem[] = [
   {
     id: 'people',
     tier: 'life',
-    label: '대피 못 한 사람 (요구조자)',
+    label: '대피 못 한 사람 (구조대상자)',
     question:
       '건물 안에 아직 대피하지 못한 사람이 있나요? 있다면 몇 명이고, 몇 층 어디쯤인지 아시나요?',
     answerPattern:
-      /사람|[0-9한두세네다섯]\s?(명|분)|아이|애기|아기|노인|어르신|할머니|할아버지|가족|남아|못\s?나오|못\s?나왔|안\s?나오|갇|요구조|아무도\s?없|다\s?나왔|모두\s?(나왔|대피)|people|person|occupant|trapped|nobody|everyone/i,
-    askPattern: /대피하지 못|남아 있|안에.*사람|갇힌|요구조|anyone (still )?inside|people inside|trapped/i,
+      /사람|[0-9한두세네다섯]\s?(명|분)|아이|애기|아기|노인|어르신|할머니|할아버지|가족|남아|못\s?나오|못\s?나왔|안\s?나오|갇|요구조|구조대상|아무도\s?없|다\s?나왔|모두\s?(나왔|대피)|people|person|occupant|trapped|nobody|everyone/i,
+    askPattern: /대피하지 못|남아 있|안에.*사람|갇힌|요구조|구조대상|anyone (still )?inside|people inside|trapped/i,
   },
   {
     id: 'fire_smoke',
