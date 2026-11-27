@@ -634,6 +634,7 @@ export function createCoexIncidentState(): IncidentState {
     },
     building: {
       name: COEX_BUILDING_NAME,
+      seoulCityDataArea: '강남 MICE 관광특구',
       address: COEX_ADDRESS,
       coordinates: { ...COEX_COORDS },
       googleMapsUri:

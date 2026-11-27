@@ -9,6 +9,7 @@ import {
   SlidersHorizontal,
   Box,
   Map as MapIcon,
+  Activity,
   Building2,
   MessageSquare,
   ShieldAlert,
@@ -19,6 +20,7 @@ import { MapWorkspace } from './components/MapWorkspace';
 import { BuildingReferenceView } from './components/BuildingReferenceView';
 import { CallerPerspectiveView } from './components/CallerPerspectiveView';
 import { Kr119IntakeChecklist } from './components/Kr119IntakeChecklist';
+import { LiveTrafficView } from './components/LiveTrafficView';
 import { ResponderToolbar } from './components/ResponderFieldPanel';
 import { ShareIncidentDialog, ReconcileFactsDialog } from './components/DispatcherModals';
 import { SourcePreviewDialog } from './components/SourcePreviewDialog';
@@ -58,7 +60,7 @@ export default function App() {
   const [responderName, setResponderName] = React.useState<string>('펌프차 1 · 현장대원');
 
   // Workspace view mode (3D Scene, Building & Reference Photos, or Google Map)
-  const [workspaceMode, setWorkspaceMode] = React.useState<'3d' | 'building' | 'map'>('3d');
+  const [workspaceMode, setWorkspaceMode] = React.useState<'3d' | 'building' | 'map' | 'live'>('3d');
   // Mobile tab when on narrow screens
   const [mobileTab, setMobileTab] = React.useState<'timeline' | '3d' | 'building' | 'map'>('timeline');
 
@@ -722,6 +724,19 @@ export default function App() {
                   <MapIcon className="h-3.5 w-3.5 text-sky-400" />
                   지도·출동 경로
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setWorkspaceMode('live')}
+                  data-testid="workspace-mode-live"
+                  className={`inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition ${
+                    workspaceMode === 'live'
+                      ? 'bg-zinc-100 text-zinc-950 font-semibold'
+                      : 'bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
+                  }`}
+                >
+                  <Activity className="h-3.5 w-3.5 text-red-400" />
+                  실시간 교통·CCTV
+                </button>
               </div>
             </div>
 
@@ -782,6 +797,12 @@ export default function App() {
                       setMobileTab('3d');
                     }}
                   />
+                </div>
+              )}
+
+              {workspaceMode === 'live' && mobileTab === 'timeline' && (
+                <div className="w-full h-full overflow-hidden">
+                  <LiveTrafficView incident={incident} />
                 </div>
               )}
 

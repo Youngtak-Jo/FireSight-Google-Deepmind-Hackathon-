@@ -305,6 +305,8 @@ export interface NearbyFireStation {
 
 export interface BuildingIdentity {
   name: string;
+  /** 서울 실시간 도시데이터 장소명 (예: '강남 MICE 관광특구') — 있으면 실시간 도로소통·혼잡도를 조회 */
+  seoulCityDataArea?: string;
   originalName?: string;
   address: string;
   coordinates: { lat: number; lng: number };

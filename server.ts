@@ -32,6 +32,7 @@ import {
   createDefaultSceneForBuilding,
 } from './src/lib/evidence-generator.ts';
 import { createCoexIncidentState } from './src/lib/coex-scenario.ts';
+import { buildLiveOverview } from './src/lib/live-traffic.ts';
 import {
   KR119_CALL_TAKER_RULES,
   buildRuleBasedCallTakerReply,
@@ -1978,6 +1979,52 @@ Keep it crisp, scannable, and grounded.`,
     incidentState = createEmptyStandbyIncidentState();
     broadcastStateUpdate('reset_to_standby');
     res.json({ ok: true, state: incidentState });
+  });
+
+  // 실시간 도로 상황·출동 소요시간·주변 CCTV (키는 서버 환경변수에만 둔다)
+  app.get('/api/live/overview', async (_req, res) => {
+    const b = incidentState.building;
+    if (!b) {
+      res.status(404).json({ error: '사건 건물이 아직 정해지지 않았습니다.' });
+      return;
+    }
+    const staging =
+      incidentState.scene.stagingCandidates.find((s) => s.type === 'truck_staging' && s.status === 'selected') ||
+      incidentState.scene.stagingCandidates.find((s) => s.type === 'truck_staging');
+    try {
+      const overview = await buildLiveOverview({
+        center: b.coordinates,
+        stations: b.nearbyStations.map((st) => {
+          // 센터 이름(예: '영동')이 차량 배치 위치의 호출명(영동펌프)·출동 센터에 들어 있으면 그 위치로 길찾기
+          const token = st.name.match(/([가-힣]+)119안전센터/)?.[1];
+          const own = token
+            ? incidentState.scene.stagingCandidates.find((s) =>
+                // '영동대로'처럼 지명에 들어간 경우를 피하려고 호출명 형태(영동펌프·영동구급·영동119)로만 맞춘다
+                new RegExp(`${token}(펌프|구급|119)`).test(`${s.label} ${s.stationName ?? ''}`)
+              )
+            : undefined;
+          return {
+            id: st.id,
+            name: st.name,
+            coordinates: st.coordinates,
+            durationSeconds: st.durationSeconds,
+            target: own ? { label: own.label, coordinates: own.coordinates } : undefined,
+          };
+        }),
+        target: staging
+          ? { label: staging.label, coordinates: staging.coordinates }
+          : { label: b.name, coordinates: b.coordinates },
+        seoulAreaName: b.seoulCityDataArea,
+        env: {
+          KAKAO_REST_API_KEY: process.env.KAKAO_REST_API_KEY,
+          SEOUL_OPEN_API_KEY: process.env.SEOUL_OPEN_API_KEY,
+          ITS_API_KEY: process.env.ITS_API_KEY,
+        },
+      });
+      res.json(overview);
+    } catch (err: any) {
+      res.status(500).json({ error: String(err?.message || err) });
+    }
   });
 
   app.post('/api/incident/start-demo', (req, res) => {
