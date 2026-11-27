@@ -145,7 +145,7 @@ export function BuildingReferenceView({
                   className="inline-flex items-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25"
                 >
                   <Box className="h-3 w-3" />
-                  Inspect L{activePlanObj.pageNumber} in 3D
+                  3D에서 {activePlanObj.pageNumber}층 보기
                 </button>
                 {floorplanSource && (
                   <button
@@ -154,7 +154,7 @@ export function BuildingReferenceView({
                     className="inline-flex items-center gap-1 rounded-xs border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-200 hover:bg-zinc-700"
                   >
                     <Maximize2 className="h-3 w-3" />
-                    Full Sheet
+                    도면 전체 보기
                   </button>
                 )}
               </div>
@@ -208,7 +208,7 @@ export function BuildingReferenceView({
                 <span className="font-mono">{selectedPhoto.angleLabel}</span>
                 <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
                   <CheckCircle2 className="h-3 w-3" />
-                  Applied to 3D Arched Facade
+                  3D 외관에 반영됨
                 </span>
               </div>
               <p className="text-xs text-zinc-300 leading-relaxed">{selectedPhoto.caption}</p>
@@ -221,7 +221,7 @@ export function BuildingReferenceView({
           <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-3 py-2">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-100">
               <MapPin className="h-3.5 w-3.5 text-amber-400" />
-              Geocoded Aerial Footprint & Tactical Approach Vectors
+              위성 사진 위치·출동 접근 방향
             </span>
             <span className="font-mono text-[10px] text-sky-400">
               {visualAssets.geocodeLabel}
@@ -230,7 +230,7 @@ export function BuildingReferenceView({
           <div className="relative aspect-16/9 w-full overflow-hidden bg-zinc-950">
             <img
               src={visualAssets.geocodeMapUrl}
-              alt={`${visualAssets.geocodeLabel} Geocoded Satellite Map`}
+              alt={`${visualAssets.geocodeLabel} 위성 지도`}
               referrerPolicy="no-referrer"
               className="h-full w-full object-cover"
             />
@@ -254,7 +254,7 @@ export function BuildingReferenceView({
               }`}
             >
               <Camera className="h-3.5 w-3.5 text-amber-400" />
-              Street & Aerial Photos ({visualAssets.photos.length})
+              거리·항공 사진 ({visualAssets.photos.length})
             </button>
             <button
               type="button"
@@ -267,7 +267,7 @@ export function BuildingReferenceView({
               }`}
             >
               <Layers className="h-3.5 w-3.5 text-sky-400" />
-              CAD Floor Plans
+              평면도
             </button>
             <button
               type="button"
@@ -280,7 +280,7 @@ export function BuildingReferenceView({
               }`}
             >
               <ShieldAlert className="h-3.5 w-3.5 text-emerald-400" />
-              Cladding & Fire Specs
+              외장재·화재 특성
             </button>
           </div>
         </div>
@@ -291,9 +291,9 @@ export function BuildingReferenceView({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
-                  AI-Referenced Street View & Aerial Captures ({incident.building?.name || 'Active Landmark'})
+                  AI가 참고한 거리·항공 사진 ({incident.building?.name || '사건 건물'})
                 </span>
-                <span className="text-[11px] text-zinc-400">Select to inspect</span>
+                <span className="text-[11px] text-zinc-400">눌러서 확인</span>
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 {visualAssets.photos.map((photo) => {
@@ -341,10 +341,10 @@ export function BuildingReferenceView({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-semibold text-zinc-100">
-                    HABS / LADBS Architectural CAD Blueprints (Levels 1–4)
+                    건축 도면 (1–4층)
                   </h3>
                   <p className="text-[11px] text-zinc-400">
-                    Click any blueprint sheet to inspect on the main stage or jump to that floor in 3D
+                    도면을 누르면 크게 보거나 3D에서 해당 층으로 이동할 수 있습니다
                   </p>
                 </div>
               </div>
@@ -370,7 +370,7 @@ export function BuildingReferenceView({
                             className="h-full w-full object-cover"
                           />
                           <span className="absolute top-2 left-2 rounded-xs bg-zinc-950/90 border border-zinc-700 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-sky-300">
-                            Sheet A-10{page.pageNumber}
+                            도면 A-10{page.pageNumber}
                           </span>
                         </div>
                         <div className="p-2.5 space-y-1">
@@ -392,7 +392,7 @@ export function BuildingReferenceView({
                           className="inline-flex flex-1 items-center justify-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/15 px-2 py-1 text-[11px] font-medium text-amber-200 hover:bg-amber-500/25"
                         >
                           <Box className="h-3 w-3" />
-                          Inspect L{page.pageNumber} in 3D
+                          3D에서 {page.pageNumber}층 보기
                         </button>
                         {floorplanSource && (
                           <button
@@ -404,7 +404,7 @@ export function BuildingReferenceView({
                             className="inline-flex items-center justify-center gap-1 rounded-xs border border-zinc-700 bg-zinc-800 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-700"
                           >
                             <Maximize2 className="h-3 w-3" />
-                            Full Sheet
+                            도면 전체 보기
                           </button>
                         )}
                       </div>
@@ -418,7 +418,7 @@ export function BuildingReferenceView({
           {activeTab === 'materials' && (
             <div className="space-y-3">
               <h3 className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
-                Verified Exterior Envelope & Material Assembly ({incident.building?.address || 'Active Landmark'})
+                확인된 외벽·외장재 구성 ({incident.building?.address || '사건 건물'})
               </h3>
               {materialSpecs.map((mat) => (
                 <div

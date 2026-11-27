@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { DialogRoot, DialogContent } from './ui/base-primitives';
 import type { SourceDocument } from '../lib/incident-engine';
+import { SOURCE_STATUS_KO } from '../lib/ko-terms';
 
 export function SourcePreviewDialog({
   source,
@@ -41,8 +42,8 @@ export function SourcePreviewDialog({
         title={source.title}
         description={
           source.originalTitle
-            ? `Original Filing: ${source.originalTitle} · Building Revision #${source.buildingRevision}`
-            : `Verified Incident Evidence Source · Building Revision #${source.buildingRevision}`
+            ? `원본 자료: ${source.originalTitle} · 건물 정보 버전 #${source.buildingRevision}`
+            : `확인된 사건 근거 자료 · 건물 정보 버전 #${source.buildingRevision}`
         }
         className="max-w-4xl max-h-[90vh] overflow-y-auto"
       >
@@ -52,10 +53,10 @@ export function SourcePreviewDialog({
             <div className="flex flex-wrap items-center gap-3 text-zinc-300">
               <span className="inline-flex items-center gap-1 font-medium text-emerald-400">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Status: {source.status.toUpperCase()}
+                상태: {SOURCE_STATUS_KO[source.status] ?? source.status}
               </span>
               <span className="font-mono text-[11px] text-zinc-400">
-                MIME: {source.mimeType}
+                형식: {source.mimeType}
               </span>
               {source.byteLength && (
                 <span className="font-mono text-[11px] text-zinc-400">
@@ -90,7 +91,7 @@ export function SourcePreviewDialog({
                   className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300 hover:bg-amber-500/20"
                 >
                   <Layers className="h-3.5 w-3.5" />
-                  Inspect Floor {source.matchedFloor} in 3D
+                  3D에서 {source.matchedFloor}층 보기
                 </button>
               )}
               {source.url && (
@@ -103,12 +104,12 @@ export function SourcePreviewDialog({
                   {source.mimeType === 'application/pdf' ? (
                     <>
                       <Download className="h-3.5 w-3.5" />
-                      Open Binary PDF
+                      PDF 원본 열기
                     </>
                   ) : (
                     <>
                       <ExternalLink className="h-3.5 w-3.5" />
-                      Open Raw Source
+                      원본 자료 열기
                     </>
                   )}
                 </a>
@@ -120,7 +121,7 @@ export function SourcePreviewDialog({
           {source.pages && source.pages.length > 1 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-mono uppercase tracking-wider text-zinc-400">
-                Architectural Sheets:
+                도면:
               </span>
               {source.pages.map((p) => (
                 <button
@@ -133,7 +134,7 @@ export function SourcePreviewDialog({
                       : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
                   }`}
                 >
-                  Page {p.pageNumber}: {p.label}
+                  {p.pageNumber}쪽: {p.label}
                 </button>
               ))}
             </div>
@@ -151,7 +152,7 @@ export function SourcePreviewDialog({
               </div>
               <div className="rounded-md border border-zinc-800/80 bg-zinc-900/60 p-3 text-xs text-zinc-300">
                 <span className="font-semibold text-zinc-100">
-                  Sheet Analysis ({activePageObj.label}):{' '}
+                  도면 분석 ({activePageObj.label}):{' '}
                 </span>
                 {activePageObj.extractedSummary}
               </div>
@@ -170,7 +171,7 @@ export function SourcePreviewDialog({
               <div>
                 <p className="font-medium text-zinc-100">{source.title}</p>
                 <p className="text-zinc-400 mt-0.5">
-                  Source URL: <code className="font-mono">{source.url}</code>
+                  자료 주소: <code className="font-mono">{source.url}</code>
                 </p>
               </div>
             </div>
@@ -180,7 +181,7 @@ export function SourcePreviewDialog({
           {source.extractedElements && source.extractedElements.length > 0 && (
             <div className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3 space-y-1.5">
               <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
-                Extracted Spatial & Structural Elements Applied to 3D Scene
+                3D 화면에 반영된 공간·구조 정보
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {source.extractedElements.map((el, i) => (

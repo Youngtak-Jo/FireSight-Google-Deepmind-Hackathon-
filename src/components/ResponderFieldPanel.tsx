@@ -83,7 +83,7 @@ export function ResponderToolbar({
     setReportId(`fr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
     if (!reportDescription) {
       setReportDescription(
-        'Heavy black smoke banking down to 4ft outside Server Room 302; door warm to touch, East Stair B remains clear.'
+        '302호 앞 복도에 짙은 검은 연기가 바닥에서 약 1.2m 높이까지 내려옴. 방문이 뜨거움. 동쪽 B계단은 연기 없음.'
       );
     }
     setReportModalOpen(true);
@@ -109,10 +109,10 @@ export function ResponderToolbar({
       const matchedFloor = incident.scene.floors.find((f) => f.level === floorNum);
       const matchedRoom = matchedFloor?.rooms.find((r) => r.id === reportRoomId);
       const placeLabel = matchedRoom
-        ? `Floor ${floorNum} · ${matchedRoom.name}`
+        ? `${floorNum}층 · ${matchedRoom.name}`
         : floorNum
-        ? `Floor ${floorNum} (Floor-only)`
-        : 'Unknown Floor / Exterior';
+        ? `${floorNum}층 (호실 미상)`
+        : '층 미상 / 건물 외부';
 
       await onPublishFieldReport({
         reportId: reportId || `fr-${Date.now()}`,
@@ -146,7 +146,7 @@ export function ResponderToolbar({
         <div className="flex items-center gap-2">
           <User className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
           <label htmlFor="responder-name-input" className="text-[11px] text-zinc-400">
-            Unit / Name:
+            소속 / 이름:
           </label>
           <input
             id="responder-name-input"
@@ -175,7 +175,7 @@ export function ResponderToolbar({
                 liveSession.connected ? 'text-emerald-400 animate-pulse' : 'text-amber-400'
               }`}
             />
-            {liveSession.connected ? 'Live Support Active' : 'Live Voice & Camera Support'}
+            {liveSession.connected ? '실시간 지원 중' : '실시간 음성·카메라 지원'}
           </button>
 
           <button
@@ -185,7 +185,7 @@ export function ResponderToolbar({
             className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-500"
           >
             <FilePlus2 className="h-3.5 w-3.5" />
-            Share Field Report
+            현장보고 공유
           </button>
         </div>
       </div>
@@ -193,8 +193,8 @@ export function ResponderToolbar({
       {/* 1. Responder Live Voice + Camera Assistance Modal (Personal Session — Explicit Share Only) */}
       <DialogRoot open={liveDrawerOpen} onOpenChange={setLiveDrawerOpen}>
         <DialogContent
-          title={`Responder Live Support · ${responderName}`}
-          description="Context-aware Gemini Live voice & camera session for your unit. Click 'Share to Room' to publish a note to the timeline."
+          title={`현장대원 실시간 지원 · ${responderName}`}
+          description="사건 상황을 알고 있는 AI와 음성·카메라로 대화합니다. 중요한 내용은 '사건방에 공유'를 눌러 기록에 올리세요."
           className="max-w-2xl"
         >
           <div className="space-y-4">
@@ -214,7 +214,7 @@ export function ResponderToolbar({
                     ) : (
                       <Radio className="h-3.5 w-3.5" />
                     )}
-                    Start Live Voice
+                    실시간 음성 시작
                   </button>
                 ) : (
                   <>
@@ -226,12 +226,12 @@ export function ResponderToolbar({
                       {liveSession.muted ? (
                         <>
                           <MicOff className="h-3.5 w-3.5 text-amber-400" />
-                          Unmute Mic
+                          마이크 켜기
                         </>
                       ) : (
                         <>
                           <Mic className="h-3.5 w-3.5 text-emerald-400" />
-                          Mute Mic
+                          마이크 끄기
                         </>
                       )}
                     </button>
@@ -241,7 +241,7 @@ export function ResponderToolbar({
                       className="inline-flex items-center gap-1.5 rounded-md border border-red-500/50 bg-red-600/90 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-500"
                     >
                       <PhoneOff className="h-3.5 w-3.5" />
-                      End Live
+                      실시간 종료
                     </button>
                   </>
                 )}
@@ -261,12 +261,12 @@ export function ResponderToolbar({
                   {liveSession.cameraActive ? (
                     <>
                       <CameraOff className="h-3.5 w-3.5 text-amber-400" />
-                      Stop Camera Stream (1 FPS)
+                      카메라 전송 중지
                     </>
                   ) : (
                     <>
                       <Camera className="h-3.5 w-3.5 text-emerald-400" />
-                      Stream Camera to Live AI
+                      카메라 화면 AI에 보내기
                     </>
                   )}
                 </button>
@@ -278,7 +278,7 @@ export function ResponderToolbar({
                     className="inline-flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
-                    Flip ({liveSession.facingMode === 'environment' ? 'Rear' : 'Front'})
+                    카메라 전환 ({liveSession.facingMode === 'environment' ? '후면' : '전면'})
                   </button>
                 )}
               </div>
@@ -297,7 +297,7 @@ export function ResponderToolbar({
                 className="h-48 w-full object-cover bg-zinc-900"
               />
               <div className="absolute bottom-2 left-2 rounded-xs bg-black/75 px-2 py-0.5 font-mono text-[10px] text-amber-300">
-                LIVE CAMERA STREAM (1 FPS JPEG)
+                카메라 전송 중 (초당 1장)
               </div>
             </div>
 
@@ -305,7 +305,7 @@ export function ResponderToolbar({
             <div className="max-h-60 overflow-y-auto space-y-2 rounded-md border border-zinc-800 bg-zinc-950 p-3">
               {liveSession.transcripts.length === 0 ? (
                 <p className="text-center text-xs text-zinc-500 py-4">
-                  Start Live Voice or ask a field question below. The AI has full context of Revision #{incident.buildingRevision} (floors, stairs, hazards, and people counts).
+                  실시간 음성을 시작하거나 아래에 질문을 입력하세요. AI는 버전 #{incident.buildingRevision}의 사건 정보(층, 계단, 위험요소, 요구조자 수)를 모두 알고 있습니다.
                 </p>
               ) : (
                 liveSession.transcripts.map((t) => (
@@ -328,11 +328,11 @@ export function ResponderToolbar({
                           setSharingLiveId(null);
                         }
                       }}
-                      title="Explicitly share this Live insight to the shared incident timeline"
+                      title="이 내용을 공유 사건 기록에 올리기"
                       className="shrink-0 inline-flex items-center gap-1 rounded-xs border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] text-amber-300 hover:bg-zinc-700"
                     >
                       <Share2 className="h-2.5 w-2.5" />
-                      Share to Room
+                      사건방에 공유
                     </button>
                   </div>
                 ))
@@ -353,7 +353,7 @@ export function ResponderToolbar({
                 type="text"
                 value={livePromptInput}
                 onChange={(e) => setLivePromptInput(e.target.value)}
-                placeholder="Ask your personal Live AI assistant (e.g., 'Which stairwell is closest to Lab 305?')…"
+                placeholder="AI에게 질문하세요 (예: '305호에서 가장 가까운 계단은?')…"
                 className="flex-1 rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-100"
               />
               <button
@@ -361,7 +361,7 @@ export function ResponderToolbar({
                 disabled={!liveSession.connected || !livePromptInput.trim()}
                 className="rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200 disabled:opacity-40"
               >
-                Send to Live
+                보내기
               </button>
             </form>
           </div>
@@ -371,15 +371,15 @@ export function ResponderToolbar({
       {/* 2. Share Field Report Dialog */}
       <DialogRoot open={reportModalOpen} onOpenChange={setReportModalOpen}>
         <DialogContent
-          title="Publish Field Report to Incident Room"
-          description="Captures field photo, location, and your human observation. FireSight attaches a separate AI visual summary without overwriting your statement."
+          title="사건방에 현장보고 올리기"
+          description="현장 사진, 위치, 대원이 직접 본 내용을 올립니다. AI 사진 분석은 따로 붙고, 대원이 쓴 내용은 바뀌지 않습니다."
         >
           <form onSubmit={handleSubmitFieldReport} className="space-y-3 text-xs">
             {reportPhotoUrl && (
               <div className="overflow-hidden rounded-md border border-zinc-800 bg-zinc-950">
                 <img
                   src={reportPhotoUrl}
-                  alt="Field snapshot preview"
+                  alt="현장 사진 미리보기"
                   className="h-40 w-full object-cover"
                 />
               </div>
@@ -388,7 +388,7 @@ export function ResponderToolbar({
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                  Floor Level
+                  층
                 </label>
                 <select
                   value={reportFloor}
@@ -402,10 +402,10 @@ export function ResponderToolbar({
                   data-testid="field-report-floor-select"
                   className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-100"
                 >
-                  <option value="">Unknown Floor / Exterior</option>
+                  <option value="">층 미상 / 건물 외부</option>
                   {incident.scene.floors.map((fl) => (
                     <option key={fl.level} value={String(fl.level)}>
-                      Floor {fl.level} — {fl.name}
+                      {fl.level}층 — {fl.name}
                     </option>
                   ))}
                 </select>
@@ -413,7 +413,7 @@ export function ResponderToolbar({
 
               <div>
                 <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                  Compartment / Room
+                  구역 / 호실
                 </label>
                 <select
                   value={reportRoomId}
@@ -421,7 +421,7 @@ export function ResponderToolbar({
                   data-testid="field-report-room-select"
                   className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-100"
                 >
-                  <option value="">Floor-Only / Unspecified Room</option>
+                  <option value="">층만 지정 / 호실 미상</option>
                   {availableRooms.map((rm) => (
                     <option key={rm.id} value={rm.id}>
                       {rm.name} ({rm.id})
@@ -433,21 +433,21 @@ export function ResponderToolbar({
 
             <div>
               <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                Responder Observation (Human Statement)
+                대원 관찰 내용 (직접 작성)
               </label>
               <textarea
                 rows={3}
                 value={reportDescription}
                 onChange={(e) => setReportDescription(e.target.value)}
                 data-testid="field-report-description-input"
-                placeholder="Describe observed conditions, smoke, doors, or occupant contact…"
+                placeholder="본 상황, 연기, 문 상태, 요구조자 접촉 여부 등을 적어 주세요…"
                 className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-2.5 text-xs text-zinc-100 focus:border-emerald-500 focus:outline-none"
               />
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
               <span className="font-mono text-[10px] text-zinc-400">
-                Reporter: {responderName} · ID: {reportId}
+                보고자: {responderName} · ID: {reportId}
               </span>
               <button
                 type="submit"
@@ -460,7 +460,7 @@ export function ResponderToolbar({
                 ) : (
                   <Send className="h-3.5 w-3.5" />
                 )}
-                Publish Field Report
+                현장보고 올리기
               </button>
             </div>
           </form>

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { TraceBranch, TraceStep, SourceDocument } from '../../lib/incident-engine';
+import { SOURCE_STATUS_KO } from '../../lib/ko-terms';
 
 /* ============================================================================
  * Rich Markdown Renderer (Supports **bold**, lists, code, and GFM tables)
@@ -159,7 +160,7 @@ export function DialogContent({
             data-testid="dialog-close-btn"
             className="shrink-0 rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
           >
-            Close
+            닫기
           </BaseDialog.Close>
         </div>
         {children}
@@ -259,8 +260,8 @@ export function MessageScroller({
             <ArrowDown className="h-3.5 w-3.5 text-amber-400" />
             <span>
               {unreadCount > 0
-                ? `${unreadCount} new update${unreadCount > 1 ? 's' : ''} · Jump to latest`
-                : 'Jump to latest'}
+                ? `새 소식 ${unreadCount}건 · 최신으로 이동`
+                : '최신으로 이동'}
             </span>
           </button>
         </div>
@@ -309,10 +310,11 @@ export function MessageHeader({
 }) {
   const formattedTime = React.useMemo(() => {
     try {
-      return new Date(timestamp).toLocaleTimeString([], {
+      return new Date(timestamp).toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
+        hour12: false,
       });
     } catch {
       return timestamp;
@@ -322,10 +324,11 @@ export function MessageHeader({
   const formattedCapture = React.useMemo(() => {
     if (!captureTime || captureTime === timestamp) return null;
     try {
-      return new Date(captureTime).toLocaleTimeString([], {
+      return new Date(captureTime).toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
+        hour12: false,
       });
     } catch {
       return null;
@@ -348,8 +351,8 @@ export function MessageHeader({
       </div>
       <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 shrink-0 ml-auto">
         {formattedCapture && (
-          <span title="Field capture timestamp" className="hidden sm:inline text-zinc-400">
-            Captured {formattedCapture} ·
+          <span title="현장 촬영 시각" className="hidden sm:inline text-zinc-400">
+            촬영 {formattedCapture} ·
           </span>
         )}
         <time dateTime={timestamp}>{formattedTime}</time>
@@ -384,7 +387,7 @@ export function MessageBubble({
       {isPartial && (
         <span className="mt-1 inline-flex items-center gap-1 rounded-sm bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] not-italic text-amber-300">
           <Loader2 className="h-2.5 w-2.5 animate-spin" />
-          live speech...
+          말하는 중...
         </span>
       )}
     </div>
@@ -573,7 +576,7 @@ export function TraceChainOfThought({ findings }: { findings: string[] }) {
     <div className="rounded-sm border border-zinc-800/70 bg-zinc-950/50 p-2 space-y-1">
       <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
         <Sparkles className="h-3 w-3 text-amber-400" />
-        <span>Cited Findings</span>
+        <span>근거 있는 확인 사항</span>
       </div>
       <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-zinc-300">
         {findings.map((f, idx) => (
@@ -597,7 +600,7 @@ export function TraceSources({
     <div className="space-y-1 pt-0.5">
       <div className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
         <BookOpen className="h-3 w-3 text-zinc-400" />
-        <span>Verified Sources ({sources.length})</span>
+        <span>확인된 자료 ({sources.length})</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {sources.map((src) => (
@@ -610,7 +613,7 @@ export function TraceSources({
             <FileText className="h-3 w-3 text-amber-400 shrink-0" />
             <span className="truncate max-w-[180px]">{src.title}</span>
             <span className="rounded-xs bg-zinc-800 px-1 font-mono text-[9px] uppercase text-zinc-300 shrink-0">
-              {src.status}
+              {SOURCE_STATUS_KO[src.status] ?? src.status}
             </span>
             <ExternalLink className="h-2.5 w-2.5 text-zinc-400 shrink-0" />
           </button>

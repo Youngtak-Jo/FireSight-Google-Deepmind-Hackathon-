@@ -16,6 +16,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import type { IncidentState, StagingCandidate, NearbyFireStation } from '../lib/incident-engine';
+import { windFromToKo, degToKo, STAGING_STATUS_KO, PLACED_BY_KO } from '../lib/ko-terms';
 
 export function MapWorkspace({
   incident,
@@ -80,11 +81,11 @@ export function MapWorkspace({
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-100">
             <MapPin className="h-3.5 w-3.5 text-red-400" />
-            {incident.building?.name || 'Active Incident Location'}
+            {incident.building?.name || '사건 발생 위치'}
           </span>
           <span className="text-zinc-400 hidden sm:inline">{incident.building?.address}</span>
           <span className="rounded-xs border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
-            {center.lat.toFixed(4)}° N, {Math.abs(center.lng).toFixed(4)}° {center.lng >= 0 ? 'E' : 'W'}
+            {center.lat >= 0 ? '북위' : '남위'} {Math.abs(center.lat).toFixed(4)}°, {center.lng >= 0 ? '동경' : '서경'} {Math.abs(center.lng).toFixed(4)}°
           </span>
           {incident.building?.googleMapsUri && (
             <a
@@ -93,7 +94,7 @@ export function MapWorkspace({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-xs border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-[11px] text-sky-300 hover:bg-zinc-800"
             >
-              Open in Google Maps
+              구글 지도에서 열기
               <ExternalLink className="h-2.5 w-2.5" />
             </a>
           )}
@@ -108,7 +109,7 @@ export function MapWorkspace({
               className="inline-flex items-center gap-1 rounded-sm border border-zinc-700 bg-zinc-900 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-800"
             >
               <PlusCircle className="h-3 w-3 text-amber-400" />
-              Propose Staging Pin
+              차량 배치 위치 제안
             </button>
           )}
           {onSwitchTo3D && (
@@ -117,7 +118,7 @@ export function MapWorkspace({
               onClick={onSwitchTo3D}
               className="rounded-sm border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-medium text-amber-200 hover:bg-amber-500/25"
             >
-              Inspect Building in 3D
+              3D로 건물 보기
             </button>
           )}
         </div>
@@ -268,7 +269,7 @@ export function MapWorkspace({
               fontFamily="IBM Plex Mono, monospace"
               fontSize="10"
             >
-              DOWNWIND PLUME DRIFT ({incident.weather.windSpeedKmh ?? 19} km/h)
+              연기 확산 방향 ({incident.weather.windSpeedKmh ?? 19} km/h)
             </text>
           </g>
 
@@ -334,7 +335,7 @@ export function MapWorkspace({
               fontSize="11.5"
               fontWeight="700"
             >
-              {incident.building?.name || 'Incident Building'} (REV #{incident.buildingRevision})
+              {incident.building?.name || '사건 건물'} (버전 #{incident.buildingRevision})
             </text>
           </g>
 
@@ -378,7 +379,7 @@ export function MapWorkspace({
                   fontSize="10"
                   fontWeight="600"
                 >
-                  {isSelected ? '[SELECTED] ' : '[CANDIDATE] '}
+                  {isSelected ? '[확정] ' : '[후보] '}
                   {stg.label.split('—')[0].trim()}
                 </text>
               </g>
@@ -413,7 +414,7 @@ export function MapWorkspace({
                   fontWeight="600"
                 >
                   {st.name} (
-                  {st.durationSeconds ? `${Math.ceil(st.durationSeconds / 60)}m ETA` : 'Route'})
+                  {st.durationSeconds ? `${Math.ceil(st.durationSeconds / 60)}분 도착 예상` : '경로'})
                 </text>
               </g>
             );
@@ -425,7 +426,7 @@ export function MapWorkspace({
           <button
             type="button"
             onClick={() => setZoom((z) => Math.min(2.2, +(z + 0.25).toFixed(2)))}
-            title="Zoom in"
+            title="확대"
             className="rounded-xs p-1.5 text-zinc-300 hover:bg-zinc-800"
           >
             <ZoomIn className="h-3.5 w-3.5" />
@@ -433,7 +434,7 @@ export function MapWorkspace({
           <button
             type="button"
             onClick={() => setZoom((z) => Math.max(0.6, +(z - 0.25).toFixed(2)))}
-            title="Zoom out"
+            title="축소"
             className="rounded-xs p-1.5 text-zinc-300 hover:bg-zinc-800"
           >
             <ZoomOut className="h-3.5 w-3.5" />
@@ -444,7 +445,7 @@ export function MapWorkspace({
               setZoom(1);
               setPan({ x: 0, y: 0 });
             }}
-            title="Reset map view"
+            title="지도 시점 초기화"
             className="rounded-xs p-1.5 text-zinc-300 hover:bg-zinc-800"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -459,15 +460,15 @@ export function MapWorkspace({
           <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5">
             <span className="flex items-center gap-1.5 font-semibold text-zinc-100 truncate">
               <Navigation className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-              <span className="truncate">Approach Routes & Staging</span>
+              <span className="truncate">출동 경로·차량 배치</span>
             </span>
-            <span className="font-mono text-[10px] text-zinc-400 shrink-0">Maps API</span>
+            <span className="font-mono text-[10px] text-zinc-400 shrink-0">지도 API</span>
           </div>
 
           {/* Nearby Fire Stations */}
           <div className="space-y-1">
             <div className="font-mono text-[10px] uppercase text-zinc-400">
-              Nearby Fire Stations (Places + Routes API)
+              가까운 소방서 (도착 예상 시간)
             </div>
             {(incident.building?.nearbyStations || []).map((st) => (
               <div
@@ -484,7 +485,7 @@ export function MapWorkspace({
                   <div className="truncate text-[10px] text-zinc-400">{st.address}</div>
                 </div>
                 <div className="shrink-0 text-right font-mono text-[11px] text-emerald-400">
-                  {st.durationSeconds ? `${Math.ceil(st.durationSeconds / 60)} min` : '—'}
+                  {st.durationSeconds ? `${Math.ceil(st.durationSeconds / 60)}분` : '—'}
                   <div className="text-[10px] text-zinc-400">
                     {st.distanceMeters ? `${(st.distanceMeters / 1000).toFixed(1)} km` : ''}
                   </div>
@@ -496,7 +497,7 @@ export function MapWorkspace({
           {/* Staging Candidates */}
           <div className="space-y-1 pt-1 border-t border-zinc-800/80">
             <div className="font-mono text-[10px] uppercase text-zinc-400">
-              Staging & Medical Post Candidates
+              차량 배치 위치·임시응급의료소 후보
             </div>
             {incident.scene.stagingCandidates.map((stg) => (
               <div
@@ -520,7 +521,7 @@ export function MapWorkspace({
                         : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                     }`}
                   >
-                    {stg.status}
+                    {STAGING_STATUS_KO[stg.status] ?? stg.status}
                   </span>
                 </div>
                 {stg.risks.length > 0 && (
@@ -543,7 +544,7 @@ export function MapWorkspace({
                       className="inline-flex items-center gap-1 rounded-xs border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-200 hover:bg-zinc-700"
                     >
                       <CheckCircle2 className="h-2.5 w-2.5 text-amber-400" />
-                      {stg.status === 'selected' ? 'Set as Candidate' : 'Confirm Staging'}
+                      {stg.status === 'selected' ? '후보로 되돌리기' : '배치 위치 확정'}
                     </button>
                   </div>
                 )}
@@ -559,10 +560,10 @@ export function MapWorkspace({
               <Wind className="h-4 w-4 text-sky-400 shrink-0" />
               <div className="min-w-0">
                 <div className="font-semibold text-zinc-100 truncate">
-                  Wind FROM {incident.weather.windCardinalFrom || 'WNW'} ({windFromDeg}°)
+                  풍향 {windFromToKo(incident.weather.windCardinalFrom || 'WNW')} ({windFromDeg}°)
                 </div>
                 <div className="text-[11px] text-zinc-400 truncate">
-                  {incident.weather.windSpeedKmh ?? 18} km/h · Plume ESE ({windToDeg}°)
+                  {incident.weather.windSpeedKmh ?? 18} km/h · 연기는 {degToKo(windToDeg)}쪽으로 ({windToDeg}°)
                 </div>
               </div>
             </div>
@@ -572,18 +573,18 @@ export function MapWorkspace({
             <div className="rounded-md border border-amber-500/40 bg-zinc-950/95 p-2.5 text-xs shadow-lg">
               <div className="font-mono text-[10px] uppercase text-amber-400">
                 {selectedStaging.status === 'selected'
-                  ? 'Selected Staging Position'
-                  : 'Research Staging Candidate'}
+                  ? '확정된 차량 배치 위치'
+                  : 'AI 조사 배치 후보'}
               </div>
               <div className="mt-0.5 font-semibold text-zinc-100">{selectedStaging.label}</div>
               <div className="mt-1 text-[11px] text-zinc-400">
-                Placed by: {selectedStaging.placedBy} ·{' '}
+                제안: {PLACED_BY_KO[selectedStaging.placedBy] ?? selectedStaging.placedBy} ·{' '}
                 {selectedStaging.coordinates.lat.toFixed(4)},{' '}
                 {selectedStaging.coordinates.lng.toFixed(4)}
               </div>
               {selectedStaging.outstandingChecks.length > 0 && (
                 <div className="mt-1.5 text-[10px] text-amber-200">
-                  Check required: {selectedStaging.outstandingChecks[0]}
+                  확인 필요: {selectedStaging.outstandingChecks[0]}
                 </div>
               )}
             </div>
@@ -592,7 +593,7 @@ export function MapWorkspace({
           {selectedStation && (
             <div className="rounded-md border border-sky-500/40 bg-zinc-950/95 p-2.5 text-xs shadow-lg">
               <div className="font-mono text-[10px] uppercase text-sky-400">
-                Fire Station Approach Route
+                소방서 출동 경로
               </div>
               <div className="mt-0.5 font-semibold text-zinc-100">{selectedStation.name}</div>
               <div className="text-[11px] text-zinc-300">{selectedStation.address}</div>
@@ -603,7 +604,7 @@ export function MapWorkspace({
                   rel="noopener noreferrer"
                   className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-sky-300 hover:underline"
                 >
-                  Open Turn-by-Turn Route
+                  길 안내 열기
                   <ExternalLink className="h-2.5 w-2.5" />
                 </a>
               )}

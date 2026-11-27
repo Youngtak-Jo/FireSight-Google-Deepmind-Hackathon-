@@ -32,6 +32,15 @@ import {
   createMedicalPost3DAsset,
 } from '../lib/three-assets';
 import { DialogRoot, DialogContent } from './ui/base-primitives';
+import {
+  windFromToKo,
+  degToKo,
+  cardinalToKo,
+  SMOKE_COLOR_KO,
+  PROVENANCE_KO,
+  ROOM_TYPE_KO,
+  PLACED_BY_KO,
+} from '../lib/ko-terms';
 
 export interface Selected3DElement {
   kind: 'room' | 'stair' | 'fire_zone' | 'staging';
@@ -115,8 +124,8 @@ export function ThreeSceneWorkspace({
     );
     const label =
       scenarioMinutes === 0
-        ? 'Reported Situation (0m) — Directly observed & relayed fire/smoke zones only.'
-        : `Illustrative 1-Hour Scenario (+${scenarioMinutes}m / 60m, Stage ${stage}%) — Unchecked interior & exterior facade spread.`;
+        ? '현재 보고 상황 (0분) — 직접 목격·전달받은 화염·연기 구역만 표시'
+        : `연소 확대 예상 시나리오 (+${scenarioMinutes}분 / 60분, ${stage}%) — 진압하지 않을 경우 내부·외벽 확대 가정`;
     return {
       projectedZones,
       affectedRoomIds,
@@ -533,8 +542,8 @@ export function ThreeSceneWorkspace({
           worldAnchorsRef.current.push({
             id: `lbl-people-floor-${floor.level}`,
             pos: badgePos.clone().add(new THREE.Vector3(0, 0.8, 0)),
-            text: `${floorOnlyCount} Person (Floor ${floor.level} Only)`,
-            subtext: 'Relayed report — exact room unknown',
+            text: `요구조자 ${floorOnlyCount}명 (${floor.level}층, 호실 미상)`,
+            subtext: '전달받은 정보 — 정확한 호실 모름',
             variant: 'people',
             floor: floor.level,
             elementRef: {
@@ -583,7 +592,7 @@ export function ThreeSceneWorkspace({
         id: `lbl-stair-${stair.id}`,
         pos: new THREE.Vector3(stair.position.x, maxY + 0.6, stair.position.z),
         text: stair.name,
-        subtext: `Vertical Access L${stair.fromFloor}–L${stair.toFloor}`,
+        subtext: `계단 ${stair.fromFloor}–${stair.toFloor}층`,
         variant: 'stair',
         elementRef: elRef,
       });
@@ -623,8 +632,8 @@ export function ThreeSceneWorkspace({
         worldAnchorsRef.current.push({
           id: `lbl-people-room-${roomId}`,
           pos: personPos.clone().add(new THREE.Vector3(0, 2.75, 0)),
-          text: `${info.count} Rescues Needed · ${roomObj.name}`,
-          subtext: '3D Human Models · Waving at Window',
+          text: `요구조자 ${info.count}명 · ${roomObj.name}`,
+          subtext: '창가에서 구조 요청 중',
           variant: 'people',
           floor: info.floor,
           elementRef: elRef,
@@ -658,12 +667,12 @@ export function ThreeSceneWorkspace({
           id: `lbl-fz-${fz.id}`,
           pos: center.clone().add(new THREE.Vector3(0, 2.5, 0)),
           text: fz.hasFlames
-            ? `ACTIVE FIRE · ${fz.areaLabel}`
-            : `SMOKE ONLY (No Flames) · ${fz.areaLabel}`,
+            ? `화염 · ${fz.areaLabel}`
+            : `연기만 (화염 없음) · ${fz.areaLabel}`,
           subtext:
             scenarioMinutes > 0
-              ? `Scenario +${scenarioMinutes}m (${fz.radiusMeters.toFixed(1)}m radius)`
-              : `${fz.smokeColor.toUpperCase()} smoke (${fz.isAssumedSpread ? 'scenario' : 'observed'})`,
+              ? `예상 +${scenarioMinutes}분 (반경 ${fz.radiusMeters.toFixed(1)}m)`
+              : `${SMOKE_COLOR_KO[fz.smokeColor] ?? fz.smokeColor} 연기 (${fz.isAssumedSpread ? '예상' : '관찰'})`,
           variant: fz.hasFlames ? 'fire' : 'smoke_only',
           floor: fz.floor,
           elementRef: elRef,
@@ -765,10 +774,10 @@ export function ThreeSceneWorkspace({
         const rm = fl.rooms.find((r) => r.id === selectedElement.id);
         if (rm) {
           return {
-            title: `Level ${fl.level} · ${rm.name}`,
-            badge: rm.uncertainty === 'uncertain_area' ? 'Uncertain Geometry' : rm.type.replace('_', ' ').toUpperCase(),
+            title: `${fl.level}층 · ${rm.name}`,
+            badge: rm.uncertainty === 'uncertain_area' ? '구조 미확인' : (ROOM_TYPE_KO[rm.type] ?? rm.type),
             floor: fl.level,
-            description: `Dimensions: ${rm.bounds.width}m × ${rm.bounds.depth}m · Floor use: ${fl.use}`,
+            description: `크기: ${rm.bounds.width}m × ${rm.bounds.depth}m · 층 용도: ${fl.use}`,
             materials: rm.materials || [],
             hazards: rm.hazards || [],
             sourceRefs: rm.sourceIds,
@@ -782,9 +791,9 @@ export function ThreeSceneWorkspace({
       if (st) {
         return {
           title: st.name,
-          badge: `VERTICAL ACCESS L${st.fromFloor}–L${st.toFloor}`,
-          description: `Connects Floors ${st.fromFloor} through ${st.toFloor}. Position (${st.position.x}m, ${st.position.z}m).`,
-          materials: ['2-hour fire-rated concrete shaft'],
+          badge: `계단 ${st.fromFloor}–${st.toFloor}층`,
+          description: `${st.fromFloor}층부터 ${st.toFloor}층까지 연결. 위치 (${st.position.x}m, ${st.position.z}m).`,
+          materials: ['2시간 내화 콘크리트 계단실'],
           hazards: [],
           sourceRefs: st.sourceIds,
           peopleCount: 0,
@@ -797,15 +806,15 @@ export function ThreeSceneWorkspace({
       if (fz) {
         return {
           title: fz.areaLabel,
-          badge: fz.hasFlames ? 'OBSERVED FLAMES + SMOKE' : 'SMOKE ONLY (NO FLAMES REPORTED)',
+          badge: fz.hasFlames ? '화염·연기 확인' : '연기만 (화염 보고 없음)',
           floor: fz.floor,
-          description: `Provenance: ${(origFz?.provenance || (fz.isAssumedSpread ? 'assumption' : 'observation')).toUpperCase()} · Smoke: ${fz.smokeColor.toUpperCase()} · Radius: ${fz.radiusMeters.toFixed(1)}m.${
+          description: `출처: ${PROVENANCE_KO[origFz?.provenance || (fz.isAssumedSpread ? 'assumption' : 'observation')] ?? origFz?.provenance} · 연기: ${SMOKE_COLOR_KO[fz.smokeColor] ?? fz.smokeColor} · 반경: ${fz.radiusMeters.toFixed(1)}m.${
             origFz?.movementNote ? ` ${origFz.movementNote}` : ''
           }`,
           materials: [],
           hazards: fz.hasFlames
-            ? ['Active thermal & flame zone', 'Potential battery/electrical off-gassing']
-            : ['Reduced visibility & smoke inhalation hazard — no active flame confirmed in this zone'],
+            ? ['고열·화염 구역', '배터리·전기설비 유독가스 발생 가능']
+            : ['시야 불량·연기 흡입 위험 — 이 구역에서 화염은 확인되지 않음'],
           sourceRefs: origFz?.sourceId ? [{ sourceId: origFz.sourceId, page: 2 }] : [],
           peopleCount: 0,
         };
@@ -816,10 +825,10 @@ export function ThreeSceneWorkspace({
       if (stg) {
         return {
           title: stg.label,
-          badge: stg.status === 'selected' ? 'SELECTED BY DISPATCH' : 'RESEARCH CANDIDATE',
-          description: `Placed by: ${stg.placedBy} · Coordinates: ${stg.coordinates.lat.toFixed(4)}, ${stg.coordinates.lng.toFixed(4)}${
+          badge: stg.status === 'selected' ? '상황실 확정' : 'AI 조사 후보',
+          description: `제안: ${PLACED_BY_KO[stg.placedBy] ?? stg.placedBy} · 좌표: ${stg.coordinates.lat.toFixed(4)}, ${stg.coordinates.lng.toFixed(4)}${
             stg.routeDurationSeconds
-              ? ` · Approach ETA: ${Math.ceil(stg.routeDurationSeconds / 60)} min (${stg.routeDistanceMeters}m)`
+              ? ` · 도착 예상: ${Math.ceil(stg.routeDurationSeconds / 60)}분 (${stg.routeDistanceMeters}m)`
               : ''
           }`,
           materials: [],
@@ -841,7 +850,7 @@ export function ThreeSceneWorkspace({
         <div className="flex items-center gap-1" role="group" aria-label="Floor isolation selector">
           <span className="mr-1 flex items-center gap-1 text-[11px] font-mono uppercase text-zinc-400">
             <Layers className="h-3.5 w-3.5 text-amber-400" />
-            Floor:
+            층:
           </span>
           <button
             type="button"
@@ -853,7 +862,7 @@ export function ThreeSceneWorkspace({
                 : 'bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
             }`}
           >
-            All ({incident.scene.floors.length})
+            전체 ({incident.scene.floors.length})
           </button>
           {incident.scene.floors.map((fl) => (
             <button
@@ -867,7 +876,7 @@ export function ThreeSceneWorkspace({
                   : 'bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
               }`}
             >
-              L{fl.level}
+              {fl.level}층
             </button>
           ))}
         </div>
@@ -877,8 +886,8 @@ export function ThreeSceneWorkspace({
           <div className="flex items-center rounded-sm border border-zinc-800 bg-zinc-900 p-0.5">
             {(
               [
-                { id: 'cutaway', label: 'Architectural Cutaway' },
-                { id: 'wireframe', label: 'Interior X-Ray' },
+                { id: 'cutaway', label: '단면 보기' },
+                { id: 'wireframe', label: '내부 투시' },
               ] as const
             ).map((m) => (
               <button
@@ -906,7 +915,7 @@ export function ThreeSceneWorkspace({
             }`}
           >
             <Flame className="h-3 w-3" />
-            Fire/Smoke
+            화염·연기
           </button>
           <button
             type="button"
@@ -918,7 +927,7 @@ export function ThreeSceneWorkspace({
             }`}
           >
             <Users className="h-3 w-3" />
-            People ({incident.peopleSummary.totalReported})
+            요구조자 ({incident.peopleSummary.totalReported})
           </button>
           <button
             type="button"
@@ -930,7 +939,7 @@ export function ThreeSceneWorkspace({
             }`}
           >
             <Eye className="h-3 w-3" />
-            Labels
+            이름표
           </button>
 
           <div className="h-3.5 w-px bg-zinc-800 mx-0.5" />
@@ -938,25 +947,25 @@ export function ThreeSceneWorkspace({
           <button
             type="button"
             onClick={() => setCameraPreset('isometric')}
-            title="Reset isometric camera"
+            title="기본 시점으로 돌아가기"
             className="inline-flex items-center gap-1 rounded-sm border border-zinc-800 bg-zinc-900 px-2 py-1 text-[11px] text-zinc-300 hover:bg-zinc-800"
           >
             <RotateCcw className="h-3 w-3" />
-            Reset View
+            시점 초기화
           </button>
           <button
             type="button"
             onClick={() => setCameraPreset('top')}
             className="rounded-sm border border-zinc-800 bg-zinc-900 px-2 py-1 text-[11px] text-zinc-300 hover:bg-zinc-800"
           >
-            Plan View
+            위에서 보기
           </button>
           <button
             type="button"
             onClick={() => setCameraPreset('fire')}
             className="rounded-sm border border-zinc-800 bg-zinc-900 px-2 py-1 text-[11px] text-amber-300 hover:bg-zinc-800"
           >
-            Focus Fire
+            화점으로 이동
           </button>
         </div>
       </div>
@@ -981,10 +990,10 @@ export function ThreeSceneWorkspace({
                 <Flame className="h-6 w-6 text-amber-400" />
               </div>
               <h3 className="mt-3 text-base font-bold text-zinc-100">
-                3D Spatial Reconstruction Standby
+                3D 건물 재구성 대기 중
               </h3>
               <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-                Awaiting 911 caller intake and Argon building research. Launch <span className="text-zinc-200 font-semibold">Demo 1</span> for a naturally paced (~2.8s/step) curated asset walkthrough, or <span className="text-sky-300 font-semibold">Demo 2</span> to execute real live <span className="text-sky-200 font-semibold">gemini-4-argon</span> Google Search, Multimodal Vision, and Maps API synthesis.
+                119 신고 접수와 AI 건물 조사를 기다리는 중입니다. <span className="text-zinc-200 font-semibold">데모 1</span>은 준비된 자료를 단계마다 약 2.8초 간격으로 보여주고, <span className="text-sky-300 font-semibold">데모 2</span>는 <span className="text-sky-200 font-semibold">gemini-4-argon</span>으로 구글 검색·사진 분석·지도 API를 실제로 실행합니다.
               </p>
               {onStartDemoScenario && (
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
@@ -995,7 +1004,7 @@ export function ThreeSceneWorkspace({
                     className="inline-flex items-center justify-center gap-1.5 rounded-md border border-amber-500/50 bg-amber-500 px-3.5 py-2 text-xs font-semibold text-zinc-950 shadow-sm transition hover:bg-amber-400"
                   >
                     <Flame className="h-3.5 w-3.5" />
-                    Demo 1: Bradbury Building (Asset Demo)
+                    데모 1: 브래드버리 빌딩 (자료 시연)
                   </button>
                   <button
                     type="button"
@@ -1004,7 +1013,7 @@ export function ThreeSceneWorkspace({
                     className="inline-flex items-center justify-center gap-1.5 rounded-md border border-sky-500/50 bg-sky-500/20 px-3.5 py-2 text-xs font-semibold text-sky-200 shadow-sm transition hover:bg-sky-500/30"
                   >
                     <Compass className="h-3.5 w-3.5 text-sky-400" />
-                    Demo 2: SF Ferry Building (Live Research)
+                    데모 2: SF 페리 빌딩 (실시간 조사)
                   </button>
                 </div>
               )}
@@ -1119,7 +1128,7 @@ export function ThreeSceneWorkspace({
               className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-950/90 px-2.5 py-1 text-[11px] font-medium text-zinc-200 shadow-md backdrop-blur-xs hover:border-amber-500/50 hover:bg-zinc-900"
             >
               <PlusCircle className="h-3 w-3 text-amber-400" />
-              + Truck
+              + 소방차
             </button>
             <button
               type="button"
@@ -1133,7 +1142,7 @@ export function ThreeSceneWorkspace({
               className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-950/90 px-2.5 py-1 text-[11px] font-medium text-zinc-200 shadow-md backdrop-blur-xs hover:border-emerald-500/50 hover:bg-zinc-900"
             >
               <PlusCircle className="h-3 w-3 text-emerald-400" />
-              + EMS Post
+              + 임시응급의료소
             </button>
           </div>
         )}
@@ -1158,7 +1167,7 @@ export function ThreeSceneWorkspace({
                 onClick={() => onSelectElement(null)}
                 className="rounded-sm border border-zinc-800 bg-zinc-900 px-2 py-0.5 text-[11px] text-zinc-400 hover:text-zinc-100"
               >
-                Close
+                닫기
               </button>
             </div>
 
@@ -1168,7 +1177,7 @@ export function ThreeSceneWorkspace({
               <div className="mt-2.5 rounded-sm border border-red-500/30 bg-red-950/30 p-2">
                 <div className="flex items-center gap-1 font-mono text-[10px] uppercase text-red-300">
                   <AlertTriangle className="h-3 w-3" />
-                  <span>Hazards & Risks</span>
+                  <span>위험요소</span>
                 </div>
                 <ul className="mt-1 list-disc pl-4 space-y-0.5 text-[11px] text-red-200">
                   {inspectedDetails.hazards.map((h, i) => (
@@ -1181,7 +1190,7 @@ export function ThreeSceneWorkspace({
             {inspectedDetails.materials && inspectedDetails.materials.length > 0 && (
               <div className="mt-2">
                 <span className="font-mono text-[10px] uppercase text-zinc-400">
-                  Structural / Compartment Materials:
+                  구조·내장재:
                 </span>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {inspectedDetails.materials.map((m, i) => (
@@ -1199,7 +1208,7 @@ export function ThreeSceneWorkspace({
             {/* Staging Selection Toggle for Dispatcher */}
             {inspectedDetails.stagingObj && isDispatcher && onSelectStagingCandidate && (
               <div className="mt-3 pt-2 border-t border-zinc-800 flex items-center justify-between">
-                <span className="text-[11px] text-zinc-400">Dispatch Status:</span>
+                <span className="text-[11px] text-zinc-400">상황실 결정:</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -1212,8 +1221,8 @@ export function ThreeSceneWorkspace({
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   {inspectedDetails.stagingObj.status === 'selected'
-                    ? 'Revert to Candidate'
-                    : 'Mark as Selected Staging'}
+                    ? '후보로 되돌리기'
+                    : '배치 위치로 확정'}
                 </button>
               </div>
             )}
@@ -1222,7 +1231,7 @@ export function ThreeSceneWorkspace({
             {inspectedDetails.sourceRefs && inspectedDetails.sourceRefs.length > 0 && (
               <div className="mt-3 border-t border-zinc-800 pt-2.5 space-y-1.5">
                 <div className="font-mono text-[10px] uppercase text-zinc-400">
-                  Source-Linked Architectural Evidence
+                  근거 건축 자료
                 </div>
                 {inspectedDetails.sourceRefs.map((ref, idx) => {
                   const src = sourcesMap.get(ref.sourceId);
@@ -1240,7 +1249,7 @@ export function ThreeSceneWorkspace({
                       </span>
                       {ref.page && (
                         <span className="shrink-0 rounded-xs bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-amber-300">
-                          Page {ref.page}
+                          {ref.page}쪽
                         </span>
                       )}
                     </button>
@@ -1259,9 +1268,9 @@ export function ThreeSceneWorkspace({
           <div className="flex items-center gap-2.5 flex-1 min-w-[240px] max-w-md">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-amber-300 shrink-0">
               <Clock className="h-3 w-3 text-amber-400" />
-              {scenarioMinutes === 0 ? 'NOW (0m)' : `+${scenarioMinutes}m`}
+              {scenarioMinutes === 0 ? '현재 (0분)' : `+${scenarioMinutes}분`}
             </span>
-            <span className="font-mono text-[11px] text-zinc-500">0m</span>
+            <span className="font-mono text-[11px] text-zinc-500">0분</span>
             <input
               type="range"
               min={0}
@@ -1269,11 +1278,11 @@ export function ThreeSceneWorkspace({
               step={5}
               value={scenarioMinutes}
               onChange={(e) => setScenarioMinutes(Number(e.target.value))}
-              aria-label="Illustrative 1-Hour Scenario Time Slider"
+              aria-label="연소 확대 예상 시간 조절 (최대 60분)"
               data-testid="scenario-time-slider"
               className="h-1.5 flex-1 cursor-pointer appearance-none rounded-lg bg-zinc-800 accent-amber-500"
             />
-            <span className="font-mono text-[11px] text-zinc-500">+60m (1h)</span>
+            <span className="font-mono text-[11px] text-zinc-500">+60분</span>
           </div>
 
           {/* Right FAB Dock: Uniform Compact FAB Buttons for People, Weather/Wind & Assumptions */}
@@ -1283,11 +1292,11 @@ export function ThreeSceneWorkspace({
               type="button"
               onClick={() => setActiveFabDialog('people')}
               data-testid="people-accountability-hud"
-              title="Inspect People Accountability & Rescue Locations"
+              title="요구조자 현황·위치 보기"
               className="inline-flex h-8 items-center gap-1.5 rounded-full border border-cyan-500/40 bg-zinc-900/95 px-3 text-xs font-medium text-cyan-200 shadow-md transition hover:border-cyan-400 hover:bg-zinc-800"
             >
               <Users className="h-3.5 w-3.5 text-cyan-400" />
-              <span>People</span>
+              <span>요구조자</span>
               <span className="rounded-full bg-cyan-500/20 px-1.5 py-0.2 font-mono text-[11px] font-bold text-cyan-300">
                 {incident.peopleSummary.totalReported}
               </span>
@@ -1298,11 +1307,11 @@ export function ThreeSceneWorkspace({
               type="button"
               onClick={() => setActiveFabDialog('weather')}
               data-testid="weather-hud-card"
-              title="Inspect Weather & Smoke Plume Drift"
+              title="기상·연기 확산 보기"
               className="inline-flex h-8 items-center gap-1.5 rounded-full border border-sky-500/40 bg-zinc-900/95 px-3 text-xs font-medium text-sky-200 shadow-md transition hover:border-sky-400 hover:bg-zinc-800"
             >
               <Wind className="h-3.5 w-3.5 text-sky-400" />
-              <span>{incident.weather.windCardinalFrom || 'WSW'}</span>
+              <span>{windFromToKo(incident.weather.windCardinalFrom || 'WSW')}</span>
               <span className="font-mono text-[11px] text-zinc-300">
                 {incident.weather.windSpeedKmh ?? 19}km/h · {incident.weather.temperatureCelsius ?? 22}°C
               </span>
@@ -1313,11 +1322,11 @@ export function ThreeSceneWorkspace({
               type="button"
               onClick={() => setActiveFabDialog('assumptions')}
               data-testid="toggle-scenario-assumptions"
-              title="Inspect Scenario Progression Assumptions"
+              title="연소 확대 시나리오 가정 보기"
               className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/95 px-3 text-xs font-medium text-zinc-200 shadow-md transition hover:border-amber-500/50 hover:bg-zinc-800"
             >
               <Info className="h-3.5 w-3.5 text-amber-400" />
-              <span>Assumptions</span>
+              <span>가정 조건</span>
             </button>
           </div>
         </div>
@@ -1332,20 +1341,20 @@ export function ThreeSceneWorkspace({
       >
         {activeFabDialog === 'people' && (
           <DialogContent
-            title="People Accountability & Rescue Locations"
-            description="Separates confirmed visual observations from floor-only reports and unassigned visitor logs."
+            title="요구조자 현황·위치"
+            description="호실까지 확인된 인원, 층만 아는 인원, 위치를 모르는 인원을 나눠서 보여줍니다."
           >
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between rounded-md border border-cyan-500/30 bg-cyan-950/25 px-3.5 py-2.5">
-                <span className="font-medium text-zinc-200">Total Unaccounted / Reported Inside</span>
+                <span className="font-medium text-zinc-200">건물 안 미확인·신고 인원 합계</span>
                 <span className="font-mono text-base font-bold text-cyan-300">
-                  {incident.peopleSummary.totalReported} People
+                  {incident.peopleSummary.totalReported}명
                 </span>
               </div>
 
               <div className="space-y-2">
                 <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
-                  Confirmed Room-Level Observations
+                  호실까지 확인된 인원
                 </div>
                 {Object.entries(incident.peopleSummary.preciseRoomCounts).map(([rId, info]) => (
                   <div
@@ -1355,12 +1364,12 @@ export function ThreeSceneWorkspace({
                     <div>
                       <div className="font-semibold text-zinc-100">{info.label}</div>
                       <div className="text-[11px] text-zinc-400">
-                        Direct caller visual observation ·Placed in 3D room `{rId}`
+                        신고자 직접 목격 · 3D 호실 `{rId}`에 표시
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="rounded-sm bg-cyan-500/20 px-2 py-0.5 font-mono text-xs font-bold text-cyan-300">
-                        {info.count} Observed
+                        {info.count}명 확인
                       </span>
                       <button
                         type="button"
@@ -1371,7 +1380,7 @@ export function ThreeSceneWorkspace({
                         }}
                         className="rounded-sm border border-zinc-700 bg-zinc-800 px-2 py-1 text-[11px] text-zinc-200 hover:bg-zinc-700"
                       >
-                        Focus in 3D
+                        3D에서 보기
                       </button>
                     </div>
                   </div>
@@ -1381,7 +1390,7 @@ export function ThreeSceneWorkspace({
               {Object.keys(incident.peopleSummary.floorOnlyCounts).length > 0 && (
                 <div className="space-y-2">
                   <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
-                    Floor-Only Reports (Exact Room Unconfirmed)
+                    층만 확인된 인원 (호실 미상)
                   </div>
                   {Object.entries(incident.peopleSummary.floorOnlyCounts).map(([fl, count]) => (
                     <div
@@ -1389,13 +1398,13 @@ export function ThreeSceneWorkspace({
                       className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-900/80 px-3 py-2"
                     >
                       <div>
-                        <div className="font-semibold text-zinc-100">Floor {fl} (Room Unknown)</div>
+                        <div className="font-semibold text-zinc-100">{fl}층 (호실 미상)</div>
                         <div className="text-[11px] text-zinc-400">
-                          Relayed report — shown as Floor {fl} uncertainty badge
+                          전달받은 정보 — 3D에 {fl}층 불확실 표시로 나타냄
                         </div>
                       </div>
                       <span className="rounded-sm bg-amber-500/20 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
-                        {count} Reported
+                        {count}명 신고
                       </span>
                     </div>
                   ))}
@@ -1408,13 +1417,13 @@ export function ThreeSceneWorkspace({
                   className="flex items-center justify-between rounded-md border border-amber-500/40 bg-amber-500/10 px-3.5 py-2.5 text-amber-200"
                 >
                   <div>
-                    <div className="font-semibold">Unknown Floor / Unassigned Location</div>
+                    <div className="font-semibold">층·위치 미상</div>
                     <div className="text-[11px] text-amber-300/80">
-                      Logged on building visitor roster — intentionally NOT placed on a 3D floor
+                      출입 명부 등으로만 확인됨 — 위치를 몰라 3D에는 표시하지 않음
                     </div>
                   </div>
                   <span className="font-mono text-sm font-bold">
-                    {incident.peopleSummary.unknownLocationCount} Unassigned
+                    {incident.peopleSummary.unknownLocationCount}명 위치 미상
                   </span>
                 </div>
               )}
@@ -1424,41 +1433,41 @@ export function ThreeSceneWorkspace({
 
         {activeFabDialog === 'weather' && (
           <DialogContent
-            title="Weather & Smoke Plume Drift"
-            description={`Real-time meteorological conditions at ${incident.weather.placeName}`}
+            title="기상·연기 확산"
+            description={`${incident.weather.placeName} 실시간 기상`}
           >
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                 <div className="rounded-md border border-zinc-800 bg-zinc-900/80 p-2.5">
-                  <div className="font-mono text-[10px] uppercase text-zinc-400">Wind Origin</div>
+                  <div className="font-mono text-[10px] uppercase text-zinc-400">풍향</div>
                   <div className="mt-1 text-sm font-bold text-sky-300">
-                    FROM {incident.weather.windCardinalFrom || 'WSW'} ({incident.weather.windDirectionFromDeg ?? 245}°)
+                    {windFromToKo(incident.weather.windCardinalFrom || 'WSW')} ({incident.weather.windDirectionFromDeg ?? 245}°)
                   </div>
                 </div>
                 <div className="rounded-md border border-zinc-800 bg-zinc-900/80 p-2.5">
-                  <div className="font-mono text-[10px] uppercase text-zinc-400">Speed / Gusts</div>
+                  <div className="font-mono text-[10px] uppercase text-zinc-400">풍속 / 순간풍속</div>
                   <div className="mt-1 font-mono text-sm font-bold text-zinc-100">
                     {incident.weather.windSpeedKmh ?? 19} / {incident.weather.windGustKmh ?? 31} km/h
                   </div>
                 </div>
                 <div className="rounded-md border border-zinc-800 bg-zinc-900/80 p-2.5">
-                  <div className="font-mono text-[10px] uppercase text-zinc-400">Temperature</div>
+                  <div className="font-mono text-[10px] uppercase text-zinc-400">기온</div>
                   <div className="mt-1 font-mono text-sm font-bold text-zinc-100">
                     {incident.weather.temperatureCelsius ?? 22.4}°C
                   </div>
                 </div>
                 <div className="rounded-md border border-zinc-800 bg-zinc-900/80 p-2.5">
-                  <div className="font-mono text-[10px] uppercase text-zinc-400">Humidity</div>
+                  <div className="font-mono text-[10px] uppercase text-zinc-400">습도</div>
                   <div className="mt-1 font-mono text-sm font-bold text-zinc-100">
-                    {incident.weather.relativeHumidity ?? 48}% RH
+                    {incident.weather.relativeHumidity ?? 48}%
                   </div>
                 </div>
               </div>
 
               <div className="rounded-md border border-sky-500/30 bg-sky-950/20 p-3 text-zinc-200">
-                <div className="font-semibold text-sky-300">Tactical Plume Drift Implication</div>
+                <div className="font-semibold text-sky-300">연기 확산에 따른 대응 참고</div>
                 <p className="mt-1 leading-relaxed text-zinc-300">
-                  Wind blowing FROM {incident.weather.windCardinalFrom || 'WSW'} pushes exterior smoke vented from the Level 3 West bay eastward across the central skylit atrium and toward the East stairwell / Spring St block. Keep EMS Triage Post upwind on the W 3rd & Broadway SW apron.
+                  {windFromToKo(incident.weather.windCardinalFrom || 'WSW')}이 불어 건물 밖으로 나온 연기는 {degToKo(((incident.weather.windDirectionFromDeg ?? 245) + 180) % 360)}쪽으로 퍼집니다. 임시응급의료소와 차량 배치 위치는 바람이 불어오는 쪽({cardinalToKo(incident.weather.windCardinalFrom || 'WSW')}쪽)에 두세요.
                 </p>
               </div>
             </div>
@@ -1467,7 +1476,7 @@ export function ThreeSceneWorkspace({
 
         {activeFabDialog === 'assumptions' && (
           <DialogContent
-            title="Illustrative Scenario Progression & Assumptions"
+            title="연소 확대 예상 시나리오와 가정 조건"
             description={scenarioState.label}
           >
             <div
@@ -1476,7 +1485,7 @@ export function ThreeSceneWorkspace({
             >
               <div className="rounded-md border border-zinc-800 bg-zinc-900/80 p-3">
                 <div className="font-mono text-[10px] uppercase text-amber-400">
-                  1. Fuel & Compartment Assumptions
+                  1. 가연물·구획 가정
                 </div>
                 <p className="mt-1 leading-relaxed">
                   {incident.scene.scenarioAssumptions.fuelAssumptions}
@@ -1488,7 +1497,7 @@ export function ThreeSceneWorkspace({
 
               <div className="rounded-md border border-zinc-800 bg-zinc-900/80 p-3">
                 <div className="font-mono text-[10px] uppercase text-sky-400">
-                  2. Openings, Central Atrium & Wind Plume
+                  2. 개구부·수직 개방 공간·바람
                 </div>
                 <p className="mt-1 leading-relaxed">
                   {incident.scene.scenarioAssumptions.openingsAssumptions}
@@ -1500,13 +1509,13 @@ export function ThreeSceneWorkspace({
 
               <div className="rounded-md border border-zinc-800 bg-zinc-900/80 p-3">
                 <div className="font-mono text-[10px] uppercase text-emerald-400">
-                  3. Suppression & Provenance Boundaries
+                  3. 진압 여부·정보 출처의 한계
                 </div>
                 <p className="mt-1 leading-relaxed">
                   {incident.scene.scenarioAssumptions.suppressionAssumptions}
                 </p>
                 <p className="mt-1.5 font-medium text-amber-300">
-                  Affected Compartments at +{scenarioMinutes}m ({scenarioState.affectedRoomIds.length}):{' '}
+                  +{scenarioMinutes}분 시점 영향 구역 ({scenarioState.affectedRoomIds.length}곳):{' '}
                   {scenarioState.affectedRoomIds.join(', ')}
                 </p>
               </div>

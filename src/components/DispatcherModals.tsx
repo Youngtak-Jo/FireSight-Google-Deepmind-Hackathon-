@@ -42,14 +42,14 @@ export function ShareIncidentDialog({
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        title="Share Incident Workspace with Field Responders"
-        description="Responders opening this link on their phone enter the Responder perspective directly with shared 3D model, Live voice/camera support, and field reporting."
+        title="현장대원에게 사건 화면 공유"
+        description="대원이 휴대폰으로 이 링크를 열면 현장대원 화면으로 바로 들어와 3D 건물, 실시간 음성·카메라 지원, 현장보고를 함께 쓸 수 있습니다."
       >
         <div className="space-y-4 text-xs">
           <div className="rounded-md border border-zinc-800 bg-zinc-900/70 p-3 space-y-2">
             <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-              <span>INCIDENT ID: {incident.id}</span>
-              <span>TOKEN EXPIRES: {new Date(incident.shareExpiresAt).toLocaleTimeString()}</span>
+              <span>사건 ID: {incident.id}</span>
+              <span>링크 만료: {new Date(incident.shareExpiresAt).toLocaleTimeString('ko-KR')}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -69,12 +69,12 @@ export function ShareIncidentDialog({
                 {copied ? (
                   <>
                     <Check className="h-3.5 w-3.5 text-emerald-600" />
-                    Copied
+                    복사됨
                   </>
                 ) : (
                   <>
                     <Copy className="h-3.5 w-3.5" />
-                    Copy Link
+                    링크 복사
                   </>
                 )}
               </button>
@@ -89,10 +89,10 @@ export function ShareIncidentDialog({
             <div className="space-y-2">
               <div className="font-semibold text-zinc-100 flex items-center gap-1.5">
                 <Smartphone className="h-4 w-4 text-emerald-400" />
-                Mobile Responder Handoff
+                휴대폰으로 현장대원 연결
               </div>
               <p className="text-zinc-400 leading-relaxed">
-                Opening this HTTPS link on any mobile browser or second tab joins the live incident room (`Revision #{incident.buildingRevision}`) with zero account setup.
+                휴대폰 브라우저나 다른 탭에서 이 링크를 열면 가입 없이 바로 실시간 사건방(버전 #{incident.buildingRevision})에 들어옵니다.
               </p>
               <button
                 type="button"
@@ -103,7 +103,7 @@ export function ShareIncidentDialog({
                 data-testid="preview-responder-link-btn"
                 className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/50 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/25"
               >
-                Open Responder Perspective Now
+                지금 현장대원 화면 열기
               </button>
             </div>
           </div>
@@ -128,8 +128,8 @@ export function ReconcileFactsDialog({
   const [submitting, setSubmitting] = React.useState(false);
 
   // Building Identity state
-  const [newBuildingName, setNewBuildingName] = React.useState('500 Howard Street Annex');
-  const [newAddress, setNewAddress] = React.useState('500 Howard Street, San Francisco, CA 94105');
+  const [newBuildingName, setNewBuildingName] = React.useState('블루빌라');
+  const [newAddress, setNewAddress] = React.useState('경기도 화성시 동탄대로 125');
 
   // People Accountability state
   const [totalPeople, setTotalPeople] = React.useState(5);
@@ -141,7 +141,7 @@ export function ReconcileFactsDialog({
   // Fire / Smoke state
   const [fireFloor, setFireFloor] = React.useState(3);
   const [fireRoomId, setFireRoomId] = React.useState('f3-corridor');
-  const [fireAreaLabel, setFireAreaLabel] = React.useState('Floor 3 West Room 301');
+  const [fireAreaLabel, setFireAreaLabel] = React.useState('3층 서쪽 301호');
   const [hasFlames, setHasFlames] = React.useState(false);
   const [smokeColor, setSmokeColor] = React.useState<'white' | 'gray' | 'black'>('gray');
 
@@ -183,8 +183,8 @@ export function ReconcileFactsDialog({
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        title="Reconcile & Correct Incident Facts"
-        description="Update building identity, people accountability, or fire/smoke observations across the incident workspace."
+        title="사건 정보 정정"
+        description="건물 정보, 요구조자 현황, 화염·연기 관찰 내용을 고치면 사건 화면 전체에 반영됩니다."
       >
         <div className="space-y-4 text-xs">
           {/* Sub-navigation */}
@@ -200,7 +200,7 @@ export function ReconcileFactsDialog({
               }`}
             >
               <Users className="h-3.5 w-3.5" />
-              People Accountability
+              요구조자 현황
             </button>
             <button
               type="button"
@@ -213,7 +213,7 @@ export function ReconcileFactsDialog({
               }`}
             >
               <Flame className="h-3.5 w-3.5" />
-              Fire vs. Smoke Zone
+              화염·연기 구역
             </button>
             <button
               type="button"
@@ -226,7 +226,7 @@ export function ReconcileFactsDialog({
               }`}
             >
               <Building2 className="h-3.5 w-3.5" />
-              Building Identity
+              건물 정보
             </button>
           </div>
 
@@ -234,12 +234,12 @@ export function ReconcileFactsDialog({
             {activeTab === 'people' && (
               <div className="space-y-3">
                 <p className="text-zinc-400">
-                  Separates total reported people from floor/room observations and unknown locations.
+                  신고된 전체 인원과, 층·호실까지 확인된 인원, 위치를 모르는 인원을 나눠서 기록합니다.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                      Total People Reported
+                      신고된 전체 인원
                     </label>
                     <input
                       type="number"
@@ -252,7 +252,7 @@ export function ReconcileFactsDialog({
                   </div>
                   <div>
                     <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                      Unknown Location Count
+                      위치 모르는 인원
                     </label>
                     <input
                       type="number"
@@ -265,7 +265,7 @@ export function ReconcileFactsDialog({
                   </div>
                   <div>
                     <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                      Observed Count on Floor
+                      해당 층 확인 인원
                     </label>
                     <input
                       type="number"
@@ -278,7 +278,7 @@ export function ReconcileFactsDialog({
                   </div>
                   <div>
                     <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                      Observed Floor Level
+                      확인된 층
                     </label>
                     <input
                       type="number"
@@ -292,13 +292,13 @@ export function ReconcileFactsDialog({
                 </div>
                 <div>
                   <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                    Room ID (Leave blank if Floor-Only / Room Unknown)
+                    호실 ID (층만 알고 호실을 모르면 비워 두세요)
                   </label>
                   <input
                     type="text"
                     value={roomSeenId}
                     onChange={(e) => setRoomSeenId(e.target.value)}
-                    placeholder="e.g. f3-east-lab (or leave empty for floor-only)"
+                    placeholder="예: f3-east-lab (층만 알면 비워 두기)"
                     className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-zinc-100"
                   />
                 </div>
@@ -308,12 +308,12 @@ export function ReconcileFactsDialog({
             {activeTab === 'fire' && (
               <div className="space-y-3">
                 <p className="text-zinc-400">
-                  Explicitly distinguishes active flame reports from smoke-only reports (smoke without flames never renders flame geometry).
+                  화염이 보인다는 보고와 연기만 보인다는 보고를 구분합니다. 연기만 있는 구역은 3D에 불꽃을 그리지 않습니다.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                      Floor Level
+                      층
                     </label>
                     <input
                       type="number"
@@ -326,22 +326,22 @@ export function ReconcileFactsDialog({
                   </div>
                   <div>
                     <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                      Smoke Color
+                      연기 색
                     </label>
                     <select
                       value={smokeColor}
                       onChange={(e) => setSmokeColor(e.target.value as any)}
                       className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-zinc-100"
                     >
-                      <option value="white">White Smoke</option>
-                      <option value="gray">Gray Smoke</option>
-                      <option value="black">Black Smoke</option>
+                      <option value="white">흰 연기</option>
+                      <option value="gray">회색 연기</option>
+                      <option value="black">검은 연기</option>
                     </select>
                   </div>
                 </div>
                 <div>
                   <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                    Area / Room Label
+                    구역·호실 이름
                   </label>
                   <input
                     type="text"
@@ -359,7 +359,7 @@ export function ReconcileFactsDialog({
                     className="rounded border-zinc-700"
                   />
                   <span className="font-medium text-zinc-200">
-                    Flames directly observed (Uncheck if ONLY smoke is reported)
+                    화염 직접 목격 (연기만 보고된 경우 체크 해제)
                   </span>
                 </label>
               </div>
@@ -368,11 +368,11 @@ export function ReconcileFactsDialog({
             {activeTab === 'building' && (
               <div className="space-y-3">
                 <p className="text-amber-300">
-                  Correcting the building identity increments Building Revision (#{incident.buildingRevision} → #{incident.buildingRevision + 1}), invalidates prior building geometry and floor locations, and launches a fresh parallel research investigation.
+                  건물을 정정하면 건물 정보 버전이 올라가고(#{incident.buildingRevision} → #{incident.buildingRevision + 1}), 이전 건물 구조와 층 위치는 무효가 되며, AI 조사를 새로 시작합니다.
                 </p>
                 <div>
                   <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                    Corrected Building Name
+                    정정할 건물 이름
                   </label>
                   <input
                     type="text"
@@ -384,7 +384,7 @@ export function ReconcileFactsDialog({
                 </div>
                 <div>
                   <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
-                    Corrected Street Address
+                    정정할 주소
                   </label>
                   <input
                     type="text"
@@ -405,7 +405,7 @@ export function ReconcileFactsDialog({
                 className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-4 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-amber-400 disabled:opacity-50"
               >
                 {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Apply Accepted Correction
+                정정 내용 적용
               </button>
             </div>
           </form>

@@ -43,6 +43,7 @@ import type {
   Perspective,
 } from '../lib/incident-engine';
 import type { Selected3DElement } from './ThreeSceneWorkspace';
+import { DELIVERY_STATUS_KO } from '../lib/ko-terms';
 import {
   BUILDING_REFERENCE_PHOTOS,
   GEOCODE_MAP_PREVIEW_SVG,
@@ -207,10 +208,10 @@ export function ConversationTimeline({
       <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-zinc-800/80 bg-zinc-950 px-3.5 py-2">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-            Shared Incident Timeline
+            공유 사건 기록
           </span>
           <span className="rounded-xs border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">
-            {incident.timeline.length} events · Rev #{incident.buildingRevision}
+            {incident.timeline.length}건 · 버전 #{incident.buildingRevision}
           </span>
           {incident.demoRunning && (
             <span
@@ -218,7 +219,7 @@ export function ConversationTimeline({
               className="inline-flex items-center gap-1 rounded-xs border border-amber-500/50 bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-300 animate-pulse"
             >
               <Sparkles className="h-2.5 w-2.5" />
-              DEMO LIVE · STEP {incident.demoStepIndex || 1}/{incident.demoTotalSteps || 8}
+              데모 진행 중 · {incident.demoStepIndex || 1}/{incident.demoTotalSteps || 8}단계
             </span>
           )}
         </div>
@@ -235,7 +236,7 @@ export function ConversationTimeline({
                   : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              Demo 1: Bradbury
+              데모 1: 브래드버리
             </button>
             <button
               type="button"
@@ -247,17 +248,17 @@ export function ConversationTimeline({
                   : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              Demo 2: SF Ferry Live
+              데모 2: SF 페리(실시간)
             </button>
             {onResetStandby && (
               <button
                 type="button"
                 onClick={onResetStandby}
                 data-testid="subheader-reset-standby"
-                title="Clear workspace back to empty standby screen"
+                title="화면을 비우고 대기 상태로 돌아가기"
                 className="rounded-xs border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
               >
-                Clear
+                초기화
               </button>
             )}
           </div>
@@ -280,13 +281,13 @@ export function ConversationTimeline({
               </div>
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-wider text-amber-400">
-                  Argon Live Incident Stream · Standby
+                  실시간 사건 스트림 · 대기 중
                 </div>
                 <h3 className="mt-0.5 text-sm font-bold text-zinc-100">
-                  Select a Demo Scenario to Stream Real-Time Dispatch & 3D Synthesis
+                  데모 시나리오를 골라 실시간 출동 대응과 3D 재구성을 시작하세요
                 </h3>
                 <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-                  Choose <span className="font-semibold text-zinc-200">Demo 1</span> for a naturally paced (<span className="font-semibold text-zinc-200">2.6–2.8s/step</span>) curated asset walkthrough, or <span className="font-semibold text-sky-300">Demo 2</span> to execute <span className="font-semibold text-sky-200">real live Gemini Argon (gemini-4-argon) Google Search, Multimodal Vision & Maps API</span> calls in real time.
+                  <span className="font-semibold text-zinc-200">데모 1</span>은 미리 준비한 자료를 단계마다 약 <span className="font-semibold text-zinc-200">2.6–2.8초</span> 간격으로 보여주는 시연이고, <span className="font-semibold text-sky-300">데모 2</span>는 <span className="font-semibold text-sky-200">Gemini Argon(gemini-4-argon)으로 구글 검색·사진 분석·지도 API를 실제로</span> 호출합니다.
                 </p>
               </div>
             </div>
@@ -301,17 +302,17 @@ export function ConversationTimeline({
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[10px] font-semibold uppercase text-amber-300">
-                      ▶ Start Demo 1 · Curated Asset Mockup
+                      ▶ 데모 1 시작 · 준비된 자료 시연
                     </span>
                     <span className="rounded-xs bg-amber-500 px-2 py-0.5 font-mono text-[10px] font-bold text-zinc-950">
-                      ~2.8s Natural Pacing
+                      단계당 약 2.8초
                     </span>
                   </div>
                   <div className="mt-1 text-xs font-bold text-zinc-100">
                     The Bradbury Building (304 S Broadway, Los Angeles)
                   </div>
                   <p className="mt-0.5 text-[11px] text-zinc-400">
-                    3rd-floor West electrical vault fire, 5-story Victorian skylit atrium, 5 trapped occupants (3D human figures), and LAFD responder field photo uploads.
+                    3층 서쪽 전기실 화재, 천창이 있는 5층 아트리움 건물, 요구조자 5명(3D 인물 표시), LA 소방대 현장 사진 업로드.
                   </p>
                 </button>
 
@@ -323,17 +324,17 @@ export function ConversationTimeline({
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[10px] font-semibold uppercase text-sky-300">
-                      ▶ Start Demo 2 · Real Live Argon Research & Vision
+                      ▶ 데모 2 시작 · 실시간 AI 조사·사진 분석
                     </span>
                     <span className="rounded-xs bg-sky-500 px-2 py-0.5 font-mono text-[10px] font-bold text-zinc-950">
-                      Real Gemini Argon API
+                      실제 Gemini API 호출
                     </span>
                   </div>
                   <div className="mt-1 text-xs font-bold text-zinc-100">
                     San Francisco Ferry Building (1 Ferry Building, The Embarcadero)
                   </div>
                   <p className="mt-0.5 text-[11px] text-zinc-400">
-                    Executes real live <span className="text-sky-200 font-medium">gemini-4-argon</span> Google Search, Multimodal Vision on Clock Tower & CAD floor plans, live Maps Geocoding/Weather, and live field photo vision.
+                    <span className="text-sky-200 font-medium">gemini-4-argon</span>으로 구글 검색, 시계탑 사진·평면도 분석, 지도 좌표·날씨 조회, 현장 사진 분석을 실제로 실행합니다.
                   </p>
                 </button>
               </div>
@@ -364,14 +365,14 @@ export function ConversationTimeline({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={`Message as ${participantName}… (Enter = Send to team · Ctrl/Cmd+Enter = Ask AI)`}
+            placeholder={`${participantName} 이름으로 메시지 입력… (Enter = 팀에 보내기 · Ctrl/Cmd+Enter = AI에게 묻기)`}
             data-testid="shared-composer-input"
             className="w-full resize-none rounded-md border border-zinc-800 bg-zinc-900/90 px-3 py-2 pr-10 text-xs text-zinc-100 placeholder-zinc-500 focus:border-zinc-600 focus:outline-none"
           />
           <button
             type="button"
             onClick={toggleDictation}
-            title={dictating ? 'Stop voice dictation' : 'Dictate into draft (gemini-3.5-transcribe)'}
+            title={dictating ? '음성 입력 중지' : '말로 입력하기 (gemini-3.5-transcribe)'}
             data-testid="composer-dictate-btn"
             className={`absolute right-2 top-2 rounded-sm p-1.5 transition ${
               dictating
@@ -393,8 +394,8 @@ export function ConversationTimeline({
 
         <div className="flex flex-wrap items-center justify-between gap-1.5">
           <div className="hidden sm:block text-[10px] font-mono text-zinc-400">
-            <span className="text-zinc-300">Enter</span>: Send to team (no AI reply) ·{' '}
-            <span className="text-amber-300">Ctrl/Cmd+Enter</span>: Ask FireSight AI
+            <span className="text-zinc-300">Enter</span>: 팀에 보내기 (AI 답변 없음) ·{' '}
+            <span className="text-amber-300">Ctrl/Cmd+Enter</span>: FireSight AI에게 묻기
           </div>
 
           <div className="flex w-full sm:w-auto items-center justify-end gap-2">
@@ -410,7 +411,7 @@ export function ConversationTimeline({
               ) : (
                 <Send className="h-3.5 w-3.5" />
               )}
-              Send to team
+              팀에 보내기
             </button>
 
             <button
@@ -425,7 +426,7 @@ export function ConversationTimeline({
               ) : (
                 <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               )}
-              Ask AI
+              AI에게 묻기
             </button>
           </div>
         </div>
@@ -478,11 +479,11 @@ function TimelineEventCard({
         }
       >
         <MessageHeader
-          speaker="FireSight Research Agents"
+          speaker="FireSight 조사 AI"
           badge={
             isObsolete
-              ? `SUPERSEDED REV #${td.buildingRevision}`
-              : `VISUAL BUILDING SYNTHESIS · REV #${td.buildingRevision}`
+              ? `이전 버전 #${td.buildingRevision} (대체됨)`
+              : `건물 정보 종합 · 버전 #${td.buildingRevision}`
           }
           timestamp={event.createdAt}
           icon={<Sparkles className="h-3.5 w-3.5 text-amber-400" />}
@@ -495,7 +496,7 @@ function TimelineEventCard({
                 className="inline-flex items-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 font-sans text-[10px] font-semibold text-amber-200 hover:bg-amber-500/25"
               >
                 <Building2 className="h-3 w-3" />
-                Building & Photos
+                건물·사진
               </button>
             ) : undefined
           }
@@ -519,11 +520,11 @@ function TimelineEventCard({
                 <CheckCircle2 className="h-3 w-3 text-emerald-400" />
               )}
               {td.status === 'running'
-                ? 'Live Parallel Argon Subagents Executing…'
-                : '5/5 Parallel Research Subagents Verified'}
+                ? 'AI 조사원 5명이 동시에 조사하는 중…'
+                : 'AI 조사원 5명 조사 완료'}
             </span>
             <span className="font-mono text-[9px] text-zinc-400">
-              {td.branches.filter((b) => b.status === 'completed').length}/{td.branches.length} complete
+              {td.branches.filter((b) => b.status === 'completed').length}/{td.branches.length} 완료
             </span>
           </div>
           <div className="space-y-1">
@@ -558,7 +559,7 @@ function TimelineEventCard({
             <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-zinc-800/80">
               <span className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-200">
                 <MapPin className="h-3 w-3 text-amber-400" />
-                Geocoded Parcel & Tactical Approach Vectors
+                건물 위치·출동 접근 방향
               </span>
               <span className="font-mono text-[10px] text-zinc-400">
                 {visualAssets.geocodeLabel}
@@ -566,7 +567,7 @@ function TimelineEventCard({
             </div>
             <img
               src={visualAssets.geocodeMapUrl}
-              alt={`Inline geocode map for ${visualAssets.geocodeLabel}`}
+              alt={`${visualAssets.geocodeLabel} 위치 지도`}
               referrerPolicy="no-referrer"
               className="h-36 w-full object-cover"
             />
@@ -577,7 +578,7 @@ function TimelineEventCard({
             <div className="flex items-center justify-between text-[11px] text-zinc-300">
               <span className="flex items-center gap-1.5 font-semibold">
                 <Camera className="h-3 w-3 text-amber-400" />
-                Referenced Exterior Photographs & Cladding Materials
+                참고한 외관 사진·외장재
               </span>
               {onOpenBuildingReference && (
                 <button
@@ -585,7 +586,7 @@ function TimelineEventCard({
                   onClick={onOpenBuildingReference}
                   className="text-[10px] font-medium text-amber-300 hover:underline"
                 >
-                  Open 3D Exterior & Gallery →
+                  3D 외관·사진 모음 열기 →
                 </button>
               )}
             </div>
@@ -627,10 +628,10 @@ function TimelineEventCard({
               <div className="flex items-center justify-between text-[11px] text-zinc-300">
                 <span className="flex items-center gap-1.5 font-semibold">
                   <Layers className="h-3 w-3 text-sky-400" />
-                  Extracted Floor Plan Schematics (L1–L4)
+                  추출한 층별 평면도 (1–4층)
                 </span>
                 <span className="font-mono text-[10px] text-zinc-400">
-                  Click floor to inspect
+                  층을 눌러 확인
                 </span>
               </div>
               <div className="grid grid-cols-4 gap-1.5">
@@ -650,7 +651,7 @@ function TimelineEventCard({
                     </div>
                     <div className="px-1.5 py-1 border-t border-zinc-800/80">
                       <div className="font-mono text-[9px] font-semibold text-sky-300">
-                        Level {pg.pageNumber}
+                        {pg.pageNumber}층
                       </div>
                       <div className="truncate text-[9px] text-zinc-400">
                         {pg.label.replace(/^Level \d+ — /, '')}
@@ -675,8 +676,8 @@ function TimelineEventCard({
                 <ChevronRight className="h-3 w-3 text-zinc-500" />
               )}
               <span>
-                {showRawAgentLog ? 'Hide' : 'View'} underlying agent tool execution (
-                {td.branches.length} parallel branches · {td.status})
+                AI 조사 상세 기록 {showRawAgentLog ? '접기' : '보기'} (
+                동시 조사 {td.branches.length}건 · {td.status === 'completed' ? '완료' : td.status === 'running' ? '진행 중' : td.status})
               </span>
             </button>
 
@@ -714,8 +715,8 @@ function TimelineEventCard({
           speaker={event.speaker}
           badge={
             isObsolete
-              ? `SUPERSEDED 3D REV #${mu.buildingRevision}`
-              : `3D SCENE UPDATE · REV #${mu.buildingRevision}`
+              ? `이전 3D 버전 #${mu.buildingRevision} (대체됨)`
+              : `3D 화면 갱신 · 버전 #${mu.buildingRevision}`
           }
           timestamp={event.createdAt}
           icon={<Box className="h-3.5 w-3.5 text-amber-400" />}
@@ -734,7 +735,7 @@ function TimelineEventCard({
               className="inline-flex items-center gap-1 rounded-sm border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 font-sans text-[11px] font-semibold text-amber-200 hover:bg-amber-500/25"
             >
               <Box className="h-3 w-3" />
-              Open in 3D
+              3D로 보기
             </button>
           }
         />
@@ -762,7 +763,7 @@ function TimelineEventCard({
             {mu.quarantinedCount > 0 && (
               <span className="inline-flex items-center gap-1 rounded-xs border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] text-amber-300">
                 <AlertCircle className="h-2.5 w-2.5" />
-                {mu.quarantinedCount} unverified geometry item quarantined
+                검증 안 된 구조 정보 {mu.quarantinedCount}건 보류
               </span>
             )}
           </div>
@@ -781,14 +782,14 @@ function TimelineEventCard({
       >
         <MessageHeader
           speaker={fr.reporterName}
-          badge={`FIELD REPORT · ${fr.placeLabel || 'On Scene'}`}
+          badge={`현장보고 · ${fr.placeLabel || '현장'}`}
           timestamp={event.createdAt}
           captureTime={fr.captureTime}
           icon={<Camera className="h-3.5 w-3.5 text-emerald-400" />}
           rightSlot={
             <span className="inline-flex items-center gap-1 font-mono text-[10px] text-emerald-400">
               <CheckCircle2 className="h-3 w-3" />
-              {fr.deliveryStatus}
+              {DELIVERY_STATUS_KO[fr.deliveryStatus] ?? fr.deliveryStatus}
             </span>
           }
         />
@@ -798,7 +799,7 @@ function TimelineEventCard({
             <div className="overflow-hidden rounded-md border border-zinc-800 bg-zinc-950">
               <img
                 src={fr.photoDataUrl}
-                alt={`Field report by ${fr.reporterName}`}
+                alt={`${fr.reporterName} 현장보고 사진`}
                 className="h-28 w-full object-cover"
               />
             </div>
@@ -807,7 +808,7 @@ function TimelineEventCard({
             {/* Human Reporter Description */}
             <div className="rounded-sm border border-zinc-800 bg-zinc-900/80 p-2">
               <div className="font-mono text-[10px] uppercase text-emerald-400">
-                Responder Observation ({fr.reporterName})
+                대원 관찰 내용 ({fr.reporterName})
               </div>
               <p className="mt-0.5 text-xs text-zinc-100">{fr.humanDescription}</p>
             </div>
@@ -823,8 +824,8 @@ function TimelineEventCard({
                   )}
                   <span>
                     {fr.aiVisualSummary.startsWith('⏳')
-                      ? 'Argon Multimodal Vision Analyzing Photo…'
-                      : 'AI Visual Summary (gemini-4-argon Vision)'}
+                      ? 'AI가 사진을 분석하는 중…'
+                      : 'AI 사진 분석 요약 (gemini-4-argon)'}
                   </span>
                 </div>
                 <MarkdownText content={fr.aiVisualSummary} className="text-[11px] text-zinc-300" />
@@ -846,7 +847,7 @@ function TimelineEventCard({
                   className="inline-flex items-center gap-1 max-w-full rounded-xs border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-200 hover:bg-zinc-700"
                 >
                   <Box className="h-3 w-3 text-amber-400 shrink-0" />
-                  <span className="truncate">Locate {fr.placeLabel} in 3D</span>
+                  <span className="truncate">3D에서 {fr.placeLabel} 위치 보기</span>
                 </button>
               </div>
             )}
@@ -862,7 +863,7 @@ function TimelineEventCard({
       <Message id={event.id} className="border-amber-500/40 bg-amber-950/20">
         <MessageHeader
           speaker={event.speaker}
-          badge={`CONSISTENCY UPDATE · REV #${event.buildingRevision}`}
+          badge={`정보 정정 · 버전 #${event.buildingRevision}`}
           timestamp={event.createdAt}
           icon={<AlertCircle className="h-3.5 w-3.5 text-amber-400" />}
         />
@@ -886,27 +887,27 @@ function TimelineEventCard({
       cardClass: 'border-zinc-800 bg-zinc-900/60',
     },
     firesight_ai: {
-      badge: 'FIRESIGHT AI',
+      badge: 'FireSight AI',
       icon: <Bot className="h-3.5 w-3.5 text-amber-400" />,
       cardClass: 'border-amber-500/25 bg-zinc-900/80',
     },
     dispatcher: {
-      badge: 'DISPATCH',
+      badge: '상황실',
       icon: <User className="h-3.5 w-3.5 text-sky-400" />,
       cardClass: 'border-zinc-800 bg-zinc-900/40',
     },
     responder: {
-      badge: 'RESPONDER',
+      badge: '현장대원',
       icon: <User className="h-3.5 w-3.5 text-emerald-400" />,
       cardClass: 'border-zinc-800 bg-zinc-900/40',
     },
     research_orchestrator: {
-      badge: 'RESEARCH',
+      badge: 'AI 조사',
       icon: <Sparkles className="h-3.5 w-3.5 text-amber-400" />,
       cardClass: 'border-zinc-800 bg-zinc-900/40',
     },
   }[event.speakerRole] || {
-    badge: 'EVENT',
+    badge: '알림',
     icon: <User className="h-3.5 w-3.5 text-zinc-400" />,
     cardClass: 'border-zinc-800 bg-zinc-900/40',
   };
@@ -952,7 +953,7 @@ function TimelineEventCard({
       {event.considerationsForDispatch && event.considerationsForDispatch.length > 0 && (
         <div className="mt-2 rounded-sm border border-zinc-800 bg-zinc-950/80 p-2 text-[11px]">
           <div className="font-mono text-[10px] uppercase text-amber-300">
-            Dispatch Considerations
+            상황실 참고사항
           </div>
           <ul className="mt-1 list-disc pl-4 space-y-0.5 text-zinc-300">
             {event.considerationsForDispatch.map((item, i) => (

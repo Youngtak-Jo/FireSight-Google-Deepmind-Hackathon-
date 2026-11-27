@@ -55,7 +55,7 @@ export default function App() {
   const [incident, setIncident] = React.useState<IncidentState | null>(null);
   const [shareUrl, setShareUrl] = React.useState<string>('');
   const [mapsApiKey, setMapsApiKey] = React.useState<string | null>(null);
-  const [responderName, setResponderName] = React.useState<string>('LAFD Engine 3 · Capt. Rivera');
+  const [responderName, setResponderName] = React.useState<string>('펌프차 1 · 현장대원');
 
   // Workspace view mode (3D Scene, Building & Reference Photos, or Google Map)
   const [workspaceMode, setWorkspaceMode] = React.useState<'3d' | 'building' | 'map'>('3d');
@@ -183,7 +183,7 @@ export default function App() {
 
   // API Handlers
   const handleSendTeamMessage = async (text: string) => {
-    const speaker = perspective === 'responder' ? responderName : 'Dispatcher';
+    const speaker = perspective === 'responder' ? responderName : '상황실';
     const resp = await fetch('/api/incident/team-message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -201,7 +201,7 @@ export default function App() {
   };
 
   const handleAskAi = async (text: string) => {
-    const speaker = perspective === 'responder' ? responderName : 'Dispatcher';
+    const speaker = perspective === 'responder' ? responderName : '상황실';
     const resp = await fetch('/api/incident/ask-ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -261,7 +261,7 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text: summaryText,
-        speaker: `${responderName} (Live Support)`,
+        speaker: `${responderName} (실시간 지원)`,
         idempotencyKey: `liveshare-${Date.now()}`,
       }),
     });
@@ -277,7 +277,7 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...payload,
-        author: perspective === 'responder' ? responderName : 'Dispatcher',
+        author: perspective === 'responder' ? responderName : '상황실',
       }),
     });
     if (resp.ok) {
@@ -377,7 +377,7 @@ export default function App() {
       <div className="flex h-screen w-screen items-center justify-center bg-zinc-950 text-zinc-300">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Flame className="h-5 w-5 text-amber-400 animate-pulse" />
-          <span>Loading FireSight Incident Workspace…</span>
+          <span>FireSight 사건 화면을 불러오는 중…</span>
         </div>
       </div>
     );
@@ -418,7 +418,7 @@ export default function App() {
                 data-testid="header-building-revision"
                 className="shrink-0 rounded-xs border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px] font-medium text-amber-300"
               >
-                REV #{incident.buildingRevision}
+                버전 #{incident.buildingRevision}
               </span>
             </div>
             <p className="truncate text-[11px] text-zinc-400 hidden md:block">
@@ -431,7 +431,7 @@ export default function App() {
         <div className="flex items-center gap-2">
           <div
             role="group"
-            aria-label="Demo perspective selector"
+            aria-label="화면 전환"
             className="inline-flex items-center rounded-md border border-zinc-800 bg-zinc-900 p-0.5"
           >
             <span className="px-2 font-mono text-[10px] uppercase text-zinc-400 hidden lg:inline">
@@ -538,7 +538,7 @@ export default function App() {
                 className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
               >
                 <SlidersHorizontal className="h-3.5 w-3.5 text-amber-400" />
-                <span className="hidden sm:inline">Reconcile Facts</span>
+                <span className="hidden sm:inline">정보 정정</span>
               </button>
 
               <button
@@ -548,7 +548,7 @@ export default function App() {
                 className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/50 bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 shadow-xs hover:bg-amber-400"
               >
                 <Share2 className="h-3.5 w-3.5" />
-                Share Incident
+                사건 공유
               </button>
             </>
           )}
@@ -591,7 +591,7 @@ export default function App() {
               }`}
             >
               <MessageSquare className="h-3.5 w-3.5" />
-              Timeline ({incident.timeline.length})
+              기록 ({incident.timeline.length})
             </button>
             <button
               type="button"
@@ -603,7 +603,7 @@ export default function App() {
               }`}
             >
               <Box className="h-3.5 w-3.5" />
-              3D Scene
+              3D 화면
             </button>
             <button
               type="button"
@@ -615,7 +615,7 @@ export default function App() {
               }`}
             >
               <Building2 className="h-3.5 w-3.5" />
-              Building
+              건물
             </button>
             <button
               type="button"
@@ -627,13 +627,13 @@ export default function App() {
               }`}
             >
               <MapIcon className="h-3.5 w-3.5" />
-              Map
+              지도
             </button>
           </div>
 
           {/* Left Pane: Chronological Conversation & Research Trace Timeline */}
           <section
-            aria-label="Incident Conversation Timeline"
+            aria-label="사건 기록"
             style={{ width: `${leftWidthPct}%` }}
             className={`flex-1 md:flex-none md:h-full min-h-0 shrink-0 border-r border-zinc-800 max-md:!w-full ${
               mobileTab === 'timeline' ? 'flex flex-col' : 'hidden md:flex md:flex-col'
@@ -643,7 +643,7 @@ export default function App() {
             <ConversationTimeline
               incident={incident}
               perspective={perspective}
-              participantName={perspective === 'responder' ? responderName : 'Dispatcher'}
+              participantName={perspective === 'responder' ? responderName : '상황실'}
               onSendTeamMessage={handleSendTeamMessage}
               onAskAi={handleAskAi}
               onOpenSource={handleOpenSource}
@@ -665,7 +665,7 @@ export default function App() {
             onPointerDown={() => {
               isResizingRef.current = true;
             }}
-            title="Drag to resize timeline and 3D workspace"
+            title="끌어서 기록창과 3D 화면 크기 조절"
             className="hidden md:flex w-1.5 cursor-col-resize items-center justify-center bg-zinc-900 hover:bg-amber-500/50 transition-colors"
           >
             <div className="h-8 w-0.5 rounded-full bg-zinc-700" />
@@ -673,7 +673,7 @@ export default function App() {
 
           {/* Right Pane: Large 3D Scene & Google Maps Platform Workspace */}
           <section
-            aria-label="Spatial 3D and Map Workspace"
+            aria-label="3D·지도 화면"
             className={`flex-1 h-full flex-col overflow-hidden bg-zinc-950 ${
               mobileTab === 'timeline' ? 'hidden md:flex' : 'flex'
             }`}
@@ -692,7 +692,7 @@ export default function App() {
                   }`}
                 >
                   <Box className="h-3.5 w-3.5 text-amber-500" />
-                  3D Building Scene
+                  3D 건물
                 </button>
                 <button
                   type="button"
@@ -705,7 +705,7 @@ export default function App() {
                   }`}
                 >
                   <Building2 className="h-3.5 w-3.5 text-emerald-400" />
-                  Photos & Floor Plans
+                  사진·평면도
                 </button>
                 <button
                   type="button"
@@ -718,7 +718,7 @@ export default function App() {
                   }`}
                 >
                   <MapIcon className="h-3.5 w-3.5 text-sky-400" />
-                  Google Map & Approach Routes
+                  지도·출동 경로
                 </button>
               </div>
             </div>
@@ -750,8 +750,8 @@ export default function App() {
                           type,
                           label:
                             type === 'truck_staging'
-                              ? 'Dispatcher Placed Truck Staging'
-                              : 'Dispatcher Placed Medical Post',
+                              ? '상황실 지정 차량 배치 위치'
+                              : '상황실 지정 임시응급의료소',
                           localPosition,
                           coordinates: {
                             lat:
@@ -807,8 +807,8 @@ export default function App() {
                           type,
                           label:
                             type === 'truck_staging'
-                              ? 'Dispatcher Map Staging Pin'
-                              : 'Dispatcher Map Medical Post',
+                              ? '상황실 지정 차량 배치 위치 (지도)'
+                              : '상황실 지정 임시응급의료소 (지도)',
                           localPosition,
                           coordinates: {
                             lat: (incident.building?.coordinates.lat || 37.7915) - 0.0004,
