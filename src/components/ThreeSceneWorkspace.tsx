@@ -1008,6 +1008,24 @@ export function ThreeSceneWorkspace({
         />
 
         {/* Empty Standby Overlay (Shown before Demo Scenario is triggered or while awaiting building research) */}
+        {/* 건물은 확인됐지만 3D 모델(층 정보)이 아직 없을 때: 빈 장면 대신 조사 중 안내 (이전 시나리오 외관이 잠깐 보이는 문제 방지) */}
+        {incident.status !== 'standby' && incident.scene.floors.length === 0 && incident.building && (
+          <div
+            data-testid="three-researching-overlay"
+            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-zinc-950/90 p-6"
+          >
+            <div className="max-w-md rounded-xl border border-zinc-800 bg-zinc-900/95 p-6 text-center shadow-2xl">
+              <div className="mx-auto flex h-12 w-12 animate-pulse items-center justify-center rounded-full border border-sky-500/40 bg-sky-500/15">
+                <Compass className="h-6 w-6 text-sky-400" />
+              </div>
+              <h3 className="mt-3 text-base font-bold text-zinc-100">건물 자료 조사 중</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
+                {incident.building.name} — 위치·도면·외관 자료를 모아 3D 건물을 만드는 중입니다.
+              </p>
+            </div>
+          </div>
+        )}
+
         {(incident.status === 'standby' ||
           (incident.scene.floors.length === 0 && !incident.building)) && (
           <div
