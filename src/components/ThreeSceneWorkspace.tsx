@@ -405,8 +405,8 @@ export function ThreeSceneWorkspace({
     root.name = 'firesight_dynamic_root';
 
     const spec = incident.scene;
-    const isStandby =
-      incident.status === 'standby' || (spec.floors.length === 0 && !incident.building);
+    // 층 정보가 없으면(대기 또는 건물 조사 중) 건물 모델을 만들지 않는다 — 이전 시나리오 외관이 남아 보이는 문제 방지
+    const isStandby = incident.status === 'standby' || spec.floors.length === 0;
 
     if (isStandby) {
       const standbyGrid = new THREE.GridHelper(110, 44, 0x3f3f46, 0x18181b);
