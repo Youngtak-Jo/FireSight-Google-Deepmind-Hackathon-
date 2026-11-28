@@ -174,19 +174,19 @@ export interface FireSmokeZone {
   buildingRevision: number;
 }
 
-/** 출동 차량 종류: 펌프차·구조대·구급차·지휘차 */
-export type ResponseUnitKind = 'pump' | 'rescue' | 'ambulance' | 'command';
+/** 출동 차량 종류: 펌프차·물탱크차·구조대·구급차·지휘차 */
+export type ResponseUnitKind = 'pump' | 'tanker' | 'rescue' | 'ambulance' | 'command';
 
 /**
  * 출동 차량 1대. 호출명은 현장 방식(삼성펌프·삼성100·삼성구급)을 따른다.
- * dispatchPhase: 'initial' = 최초 출동 지령, 'level1' = 대응 1단계 발령 후 추가 출동
+ * dispatchPhase: 'initial' = 최초 출동 지령, 'level1' = 대응 1단계 발령 후, 'level2' = 대응 2단계 발령 후 추가 출동
  */
 export interface ResponseUnit {
   callSign: string;
   kind: ResponseUnitKind;
   station: string;
   role: string;
-  dispatchPhase: 'initial' | 'level1';
+  dispatchPhase: 'initial' | 'level1' | 'level2';
   outOfJurisdiction?: boolean;
   routeDistanceMeters?: number;
   routeDurationSeconds?: number;
