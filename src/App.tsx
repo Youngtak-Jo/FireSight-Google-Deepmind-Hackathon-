@@ -301,6 +301,13 @@ export default function App() {
     });
   };
 
+  // 데스크톱 화면 전환 탭: 모바일 탭 상태(mobileTab)가 '3d' 등으로 남아 있으면 데스크톱에서도
+  // 3D 화면이 고정되어 다른 탭이 안 열리는 문제가 있어, 데스크톱 전환 시 모바일 탭도 함께 맞춘다.
+  const switchDesktopWorkspace = React.useCallback((mode: '3d' | 'building' | 'map' | 'live') => {
+    setWorkspaceMode(mode);
+    setMobileTab(mode === 'live' ? 'timeline' : mode);
+  }, []);
+
   const handleStartDemo = React.useCallback(
     async (scenario: 'bradbury_mockup' | 'ferry_live' | 'coex_mockup') => {
       setSelectedFloor('all');
@@ -687,7 +694,7 @@ export default function App() {
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setWorkspaceMode('3d')}
+                  onClick={() => switchDesktopWorkspace('3d')}
                   data-testid="workspace-mode-3d"
                   className={`inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition ${
                     workspaceMode === '3d'
@@ -700,7 +707,7 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setWorkspaceMode('building')}
+                  onClick={() => switchDesktopWorkspace('building')}
                   data-testid="workspace-mode-building"
                   className={`inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition ${
                     workspaceMode === 'building'
@@ -713,7 +720,7 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setWorkspaceMode('map')}
+                  onClick={() => switchDesktopWorkspace('map')}
                   data-testid="workspace-mode-map"
                   className={`inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition ${
                     workspaceMode === 'map'
@@ -726,7 +733,7 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setWorkspaceMode('live')}
+                  onClick={() => switchDesktopWorkspace('live')}
                   data-testid="workspace-mode-live"
                   className={`inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium transition ${
                     workspaceMode === 'live'

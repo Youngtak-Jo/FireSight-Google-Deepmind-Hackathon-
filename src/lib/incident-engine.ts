@@ -787,7 +787,7 @@ export function computeScenarioProgression(
           id: `scenario-hop1-${z.id}-${adjId}`,
           floor: adj.room.floor,
           roomId: adj.room.id,
-          areaLabel: `${adj.room.name} (Scenario Spread)`,
+          areaLabel: `${adj.room.name} (확산 예상)`,
           position: [
             adj.room.bounds.x,
             adj.floorElevation + adj.floorHeight * 0.45,
@@ -818,7 +818,7 @@ export function computeScenarioProgression(
               id: `scenario-hop2-${z.id}-${adj2Id}`,
               floor: adj2.room.floor,
               roomId: adj2.room.id,
-              areaLabel: `${adj2.room.name} (${canIgniteHop2 ? 'Flashover Spread' : 'Smoke Migration'})`,
+              areaLabel: `${adj2.room.name} (${canIgniteHop2 ? '플래시오버 확산 예상' : '연기 이동 예상'})`,
               position: [
                 adj2.room.bounds.x,
                 adj2.floorElevation + adj2.floorHeight * 0.5,
@@ -844,15 +844,16 @@ export function computeScenarioProgression(
       const vertFactor = (clampedStage - 35) / 65;
       const upperStairs = scene.stairs.filter((s) => s.fromFloor <= z.floor && s.toFloor > z.floor);
       for (const stair of upperStairs) {
+        // 바로 위층: 층 번호에 0층이 없으므로(지하1층 → 1층) 현재 층보다 높은 층 중 가장 낮은 층
         const upperFloor =
-          scene.floors.find((f) => f.level === z.floor + 1) ||
+          [...scene.floors].filter((f) => f.level > z.floor).sort((x, y) => x.level - y.level)[0] ||
           scene.floors.find((f) => f.level === stair.toFloor);
         if (!upperFloor) continue;
         const canIgniteUpper = z.hasFlames && clampedStage >= 50;
         spreadZones.push({
           id: `scenario-stair-${z.id}-${stair.id}`,
           floor: upperFloor.level,
-          areaLabel: `${stair.name} Upper Landing F${upperFloor.level} (Vertical Lap-Over)`,
+          areaLabel: `${stair.name} · ${upperFloor.level < 0 ? `지하${-upperFloor.level}층` : `${upperFloor.level}층`} 계단실 (수직 확산 예상)`,
           position: [
             stair.position.x,
             upperFloor.elevationMeters + upperFloor.heightMeters * 0.5,
@@ -869,7 +870,8 @@ export function computeScenarioProgression(
     }
 
     // Unchecked 36m–60m (stage >= 60) Exterior Facade & Skylight Roof Venting Breach
-    if (z.hasFlames && clampedStage >= 60) {
+    // 지하층 화재는 최상층 외벽 분출로 바로 이어지지 않으므로(코엑스몰 등) 지상층 화재에만 적용
+    if (z.hasFlames && clampedStage >= 60 && z.floor >= 1) {
       const roofFactor = (clampedStage - 60) / 40;
       const topFloor = scene.floors[scene.floors.length - 1];
       if (topFloor) {
@@ -877,7 +879,7 @@ export function computeScenarioProgression(
           id: `scenario-roof-breakout-${z.id}`,
           floor: topFloor.level,
           roomId: topFloor.rooms[0]?.id,
-          areaLabel: `Atrium Skylight & Upper Facade Breach (Unchecked +${Math.round((clampedStage / 100) * 60)}m)`,
+          areaLabel: `최상층 천창·외벽 개구부 화염 분출 예상 (미진압 +${Math.round((clampedStage / 100) * 60)}분)`,
           position: [
             0,
             topFloor.elevationMeters + topFloor.heightMeters * 0.65,
