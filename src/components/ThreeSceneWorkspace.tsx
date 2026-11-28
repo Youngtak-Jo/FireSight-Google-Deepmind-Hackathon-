@@ -29,6 +29,7 @@ import {
   createRealisticFireAndSmokeZone,
   createTrappedPerson3DAsset,
   createFireTruck3DAsset,
+  createResponseVehicle3DAsset,
   createMedicalPost3DAsset,
 } from '../lib/three-assets';
 import { DialogRoot, DialogContent } from './ui/base-primitives';
@@ -713,16 +714,35 @@ export function ThreeSceneWorkspace({
     if (showStaging) {
       for (const stg of spec.stagingCandidates) {
         const isSelected = stg.status === 'selected';
-        const assetGroup =
-          stg.type === 'truck_staging'
-            ? createFireTruck3DAsset(isSelected)
-            : createMedicalPost3DAsset(isSelected);
-
-        assetGroup.position.set(stg.localPosition[0], 0, stg.localPosition[2]);
-        // Orient vehicle along adjacent street (East Beale St vs South Market St)
-        if (Math.abs(stg.localPosition[0]) > Math.abs(stg.localPosition[2])) {
-          assetGroup.rotation.y = Math.PI / 2;
+        const [sx, , sz] = stg.localPosition;
+        const alongZ = Math.abs(sx) > Math.abs(sz); // 건물 동·서쪽이면 차량이 남북(z) 방향 도로를 따라 선다
+        const assetGroup = new THREE.Group();
+        const vehicleUnits = (stg.units || []).filter((un) => stg.type === 'truck_staging' || un.kind === 'ambulance');
+        if (stg.type === 'medical_post') {
+          assetGroup.add(createMedicalPost3DAsset(isSelected));
         }
+        if (vehicleUnits.length > 0) {
+          // 배치 위치마다 출동 차량을 도로를 따라 한 줄로 세운다 (구급차는 의료소 바깥쪽 줄)
+          const spacing = stg.type === 'medical_post' ? 5.5 : 7;
+          const outward = stg.type === 'medical_post' ? (alongZ ? Math.sign(sx) * 6 : Math.sign(sz || -1) * 6) : 0;
+          vehicleUnits.forEach((un, i) => {
+            const v = createResponseVehicle3DAsset(un.kind, isSelected);
+            const offset = (i - (vehicleUnits.length - 1) / 2) * spacing;
+            if (alongZ) {
+              v.position.set(outward, 0, offset);
+              v.rotation.y = Math.PI / 2;
+            } else {
+              v.position.set(offset, 0, outward);
+            }
+            assetGroup.add(v);
+          });
+        } else if (stg.type === 'truck_staging') {
+          const truck = createFireTruck3DAsset(isSelected);
+          if (alongZ) truck.rotation.y = Math.PI / 2;
+          assetGroup.add(truck);
+        }
+
+        assetGroup.position.set(sx, 0, sz);
         root.add(assetGroup);
 
         const elRef: Selected3DElement = { kind: 'staging', id: stg.id };
@@ -737,11 +757,15 @@ export function ThreeSceneWorkspace({
           text: `${stg.status === 'selected' ? '[확정] ' : '[후보] '}${
             stg.type === 'medical_post' ? '+ ' : ''
           }${stg.label}`,
-          subtext: stg.routeDurationSeconds
-            ? `도착 예상 ${Math.ceil(stg.routeDurationSeconds / 60)}분 · ${
-                stg.stationName || PLACED_BY_KO[stg.placedBy] || stg.placedBy
-              }`
-            : PLACED_BY_KO[stg.placedBy] || stg.placedBy,
+          subtext: stg.units?.length
+            ? stg.units
+                .map((un) => `${un.callSign}${un.routeDurationSeconds ? ` ${Math.round(un.routeDurationSeconds / 60)}분` : ''}`)
+                .join(' · ')
+            : stg.routeDurationSeconds
+              ? `도착 예상 ${Math.ceil(stg.routeDurationSeconds / 60)}분 · ${
+                  stg.stationName || PLACED_BY_KO[stg.placedBy] || stg.placedBy
+                }`
+              : PLACED_BY_KO[stg.placedBy] || stg.placedBy,
           variant: 'staging',
           elementRef: elRef,
         });
