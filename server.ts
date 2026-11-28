@@ -32,7 +32,7 @@ import {
   createDefaultSceneForBuilding,
 } from './src/lib/evidence-generator.ts';
 import { createCoexIncidentState } from './src/lib/coex-scenario.ts';
-import { coexSceneForPhase } from './src/lib/coex-dispatch.ts';
+import { coexSceneForPhase, COEX_RESPONSE_LEVELS } from './src/lib/coex-dispatch.ts';
 import { buildLiveOverview } from './src/lib/live-traffic.ts';
 import {
   KR119_CALL_TAKER_RULES,
@@ -1259,9 +1259,8 @@ async function startServer() {
     const totalSteps = evts.length;
     // 코엑스: 대응 1단계 발령(상황실 지령) 전에는 최초 출동 차량만 장면에 보이게 한다
     const isCoexDemo = texts.key === 'coex';
-    let level1Issued = false;
-    const phased = (scene: IncidentState['scene']) =>
-      isCoexDemo && !level1Issued ? coexSceneForPhase(scene, 'initial') : scene;
+    let coexPhase: 'initial' | 'level1' | 'level2' = 'initial';
+    const phased = (scene: IncidentState['scene']) => (isCoexDemo ? coexSceneForPhase(scene, coexPhase) : scene);
 
     // Wait 2.6s after Caller's initial 911 report so viewer can read it clearly
     if (!(await sleepDemo(2600, runId))) return;
@@ -1387,13 +1386,17 @@ async function startServer() {
         createdAt: new Date().toISOString(),
       }).timeline;
 
-      if (isCoexDemo && evt.id === 'evt-coex-dispatch-1') {
-        // 대응 1단계 발령: 추가 출동 차량(타관할 포함)을 장면에 반영
-        level1Issued = true;
-        incidentState.responseLevel = targetState.responseLevel
-          ? { ...targetState.responseLevel, issuedAt: new Date().toISOString() }
-          : undefined;
-        incidentState.scene = { ...incidentState.scene, stagingCandidates: targetState.scene.stagingCandidates };
+      if (isCoexDemo && (evt.id === 'evt-coex-dispatch-1' || evt.id === 'evt-coex-dispatch-2')) {
+        // 대응단계 발령: 해당 단계 추가 출동 차량(타관할 포함)을 장면에 반영
+        coexPhase = evt.id === 'evt-coex-dispatch-1' ? 'level1' : 'level2';
+        incidentState.responseLevel = {
+          ...COEX_RESPONSE_LEVELS[coexPhase],
+          issuedAt: new Date().toISOString(),
+        };
+        incidentState.scene = {
+          ...incidentState.scene,
+          stagingCandidates: coexSceneForPhase(targetState.scene, coexPhase).stagingCandidates,
+        };
       }
 
       if (evt.type === 'caller_utterance') {

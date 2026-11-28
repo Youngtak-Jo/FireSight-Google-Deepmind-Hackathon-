@@ -582,7 +582,7 @@ export function MapWorkspace({
                         <span className="min-w-0">
                           <span
                             className={`font-semibold ${
-                              un.kind === 'pump'
+                              un.kind === 'pump' || un.kind === 'tanker'
                                 ? 'text-red-300'
                                 : un.kind === 'rescue'
                                   ? 'text-orange-300'
@@ -596,8 +596,10 @@ export function MapWorkspace({
                           {un.outOfJurisdiction && (
                             <span className="ml-1 rounded-xs border border-sky-500/40 px-1 text-[9px] text-sky-300">타관할</span>
                           )}
-                          {un.dispatchPhase === 'level1' && (
-                            <span className="ml-1 rounded-xs border border-amber-500/40 px-1 text-[9px] text-amber-300">대응1단계</span>
+                          {un.dispatchPhase !== 'initial' && (
+                            <span className="ml-1 rounded-xs border border-amber-500/40 px-1 text-[9px] text-amber-300">
+                              {un.dispatchPhase === 'level1' ? '대응1단계' : '대응2단계'}
+                            </span>
                           )}
                           <span className="ml-1 text-zinc-400">{un.role}</span>
                         </span>

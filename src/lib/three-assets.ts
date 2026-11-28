@@ -2215,7 +2215,7 @@ export function createFireTruck3DAsset(isSelected: boolean): THREE.Group {
  * 펌프차: 빨간 차체 + 은색 수납함, 구조대: 주황 차체 + 흰 띠, 구급차: 흰 차체 + 빨간 띠, 지휘차: 흰·빨강 SUV.
  */
 export function createResponseVehicle3DAsset(
-  kind: 'pump' | 'rescue' | 'ambulance' | 'command',
+  kind: 'pump' | 'tanker' | 'rescue' | 'ambulance' | 'command',
   isSelected: boolean
 ): THREE.Group {
   const g = new THREE.Group();
@@ -2223,7 +2223,7 @@ export function createResponseVehicle3DAsset(
   const mat = (color: number, rough = 0.35, metal = 0.3) =>
     new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
   const bodyColor =
-    kind === 'pump' ? (isSelected ? 0xef4444 : 0xdc2626)
+    kind === 'pump' || kind === 'tanker' ? (isSelected ? 0xef4444 : 0xdc2626)
     : kind === 'rescue' ? 0xf97316
     : 0xf8fafc;
   const stripeColor = kind === 'pump' ? 0xd4d4d8 : kind === 'rescue' ? 0xf8fafc : 0xdc2626;
@@ -2260,6 +2260,14 @@ export function createResponseVehicle3DAsset(
   );
   bar.position.set(dims.len / 2 - dims.cab / 2, 0.62 + dims.h * 0.85 + 0.08, 0);
   g.add(bar);
+  if (kind === 'tanker') {
+    // 물탱크차: 차체 위 은색 원통 탱크
+    const tankGeo = new THREE.CylinderGeometry(dims.w * 0.42, dims.w * 0.42, dims.len - dims.cab - 0.3, 16);
+    tankGeo.rotateZ(Math.PI / 2);
+    const tank = new THREE.Mesh(tankGeo, mat(0xd4d4d8, 0.25, 0.85));
+    tank.position.set(-dims.cab / 2, 0.62 + dims.h + dims.w * 0.3, 0);
+    g.add(tank);
+  }
   if (kind === 'ambulance') {
     const red = new THREE.MeshBasicMaterial({ color: 0xef4444 });
     const c1 = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.3), red);
