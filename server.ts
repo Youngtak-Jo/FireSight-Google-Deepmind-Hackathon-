@@ -2091,6 +2091,8 @@ Keep it crisp, scannable, and grounded.`,
       },
       facts: targetState.facts.slice(0, 1),
       timeline: [firstEvent],
+      // 코엑스: 기본값(LA 날씨)이 잠깐 보이지 않도록 관할 지역 기상을 처음부터 표시
+      ...(resolvedScenario === 'coex_mockup' ? { weather: targetState.weather } : {}),
     };
 
     broadcastStateUpdate(`demo_start_${resolvedScenario}_step_1`);

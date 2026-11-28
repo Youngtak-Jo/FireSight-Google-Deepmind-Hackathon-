@@ -1012,7 +1012,7 @@ export function ThreeSceneWorkspace({
         {incident.status !== 'standby' && incident.scene.floors.length === 0 && incident.building && (
           <div
             data-testid="three-researching-overlay"
-            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-zinc-950/90 p-6"
+            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-zinc-950 p-6"
           >
             <div className="max-w-md rounded-xl border border-zinc-800 bg-zinc-900/95 p-6 text-center shadow-2xl">
               <div className="mx-auto flex h-12 w-12 animate-pulse items-center justify-center rounded-full border border-sky-500/40 bg-sky-500/15">
