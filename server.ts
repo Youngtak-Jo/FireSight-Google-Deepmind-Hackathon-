@@ -32,6 +32,7 @@ import {
   createDefaultSceneForBuilding,
 } from './src/lib/evidence-generator.ts';
 import { createCoexIncidentState } from './src/lib/coex-scenario.ts';
+import { coexSceneForPhase } from './src/lib/coex-dispatch.ts';
 import { buildLiveOverview } from './src/lib/live-traffic.ts';
 import {
   KR119_CALL_TAKER_RULES,
@@ -1256,6 +1257,11 @@ async function startServer() {
   ) {
     const evts = targetState.timeline;
     const totalSteps = evts.length;
+    // 코엑스: 대응 1단계 발령(상황실 지령) 전에는 최초 출동 차량만 장면에 보이게 한다
+    const isCoexDemo = texts.key === 'coex';
+    let level1Issued = false;
+    const phased = (scene: IncidentState['scene']) =>
+      isCoexDemo && !level1Issued ? coexSceneForPhase(scene, 'initial') : scene;
 
     // Wait 2.6s after Caller's initial 911 report so viewer can read it clearly
     if (!(await sleepDemo(2600, runId))) return;
@@ -1347,10 +1353,10 @@ async function startServer() {
     // Step 4: 3D Scene Materialization (evt-model-1) — Note: in targetState.timeline, let's check order or materialize 3D scene now!
     // In createInitialIncidentState, evts[3] is evt-call-2, evts[4] is evt-ct-2, evts[5] is evt-model-1, evts[6] is evt-ai-initial-1, evts[7] is evt-field-1, evts[8] is evt-field-2.
     // Let's materialize the 3D building shell & initial fire right after research, then walk through the remaining events with 2.7s pacing!
-    incidentState.scene = {
+    incidentState.scene = phased({
       ...targetState.scene,
       fireZones: targetState.scene.fireZones.slice(0, 1),
-    };
+    });
     incidentState.status = 'monitoring';
     incidentState.revision += 1;
     broadcastStateUpdate('demo_bradbury_3d_shell_ready');
@@ -1381,13 +1387,22 @@ async function startServer() {
         createdAt: new Date().toISOString(),
       }).timeline;
 
+      if (isCoexDemo && evt.id === 'evt-coex-dispatch-1') {
+        // 대응 1단계 발령: 추가 출동 차량(타관할 포함)을 장면에 반영
+        level1Issued = true;
+        incidentState.responseLevel = targetState.responseLevel
+          ? { ...targetState.responseLevel, issuedAt: new Date().toISOString() }
+          : undefined;
+        incidentState.scene = { ...incidentState.scene, stagingCandidates: targetState.scene.stagingCandidates };
+      }
+
       if (evt.type === 'caller_utterance') {
         // Materialize the 5 trapped occupants & 3D waving human models on Floor 3!
         incidentState.peopleSummary = targetState.peopleSummary;
         incidentState.facts = targetState.facts;
-        incidentState.scene = targetState.scene;
+        incidentState.scene = phased(targetState.scene);
       } else if (evt.type === 'model_update' || evt.type === 'field_report') {
-        incidentState.scene = targetState.scene;
+        incidentState.scene = phased(targetState.scene);
       }
 
       incidentState.revision += 1;
@@ -1996,13 +2011,20 @@ Keep it crisp, scannable, and grounded.`,
         center: b.coordinates,
         stations: b.nearbyStations.map((st) => {
           // 센터 이름(예: '영동')이 차량 배치 위치의 호출명(영동펌프)·출동 센터에 들어 있으면 그 위치로 길찾기
+          // 1) 소방서 이름 괄호 안의 호출명(삼성펌프·서초100 등)이 배치 위치 차량에 있으면 그 위치로
+          const callSigns: string[] = st.name.match(/[가-힣]+(?:펌프|구급|100)/g) ?? [];
+          const byUnit = incidentState.scene.stagingCandidates.find((s) =>
+            (s.units ?? []).some((un) => callSigns.includes(un.callSign))
+          );
           const token = st.name.match(/([가-힣]+)119안전센터/)?.[1];
-          const own = token
-            ? incidentState.scene.stagingCandidates.find((s) =>
-                // '영동대로'처럼 지명에 들어간 경우를 피하려고 호출명 형태(영동펌프·영동구급·영동119)로만 맞춘다
-                new RegExp(`${token}(펌프|구급|119)`).test(`${s.label} ${s.stationName ?? ''}`)
-              )
-            : undefined;
+          const own =
+            byUnit ??
+            (token
+              ? incidentState.scene.stagingCandidates.find((s) =>
+                  // '영동대로'처럼 지명에 들어간 경우를 피하려고 호출명 형태(영동펌프·영동구급·영동119)로만 맞춘다
+                  new RegExp(`${token}(펌프|구급|119)`).test(`${s.label} ${s.stationName ?? ''}`)
+                )
+              : undefined);
           return {
             id: st.id,
             name: st.name,

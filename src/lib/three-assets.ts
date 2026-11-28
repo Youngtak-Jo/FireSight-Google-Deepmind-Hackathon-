@@ -2211,6 +2211,77 @@ export function createFireTruck3DAsset(isSelected: boolean): THREE.Group {
 }
 
 /**
+ * 출동 차량 종류별 3D 모델 (펌프차·구조대·구급차·지휘차). 길이 방향은 +x.
+ * 펌프차: 빨간 차체 + 은색 수납함, 구조대: 주황 차체 + 흰 띠, 구급차: 흰 차체 + 빨간 띠, 지휘차: 흰·빨강 SUV.
+ */
+export function createResponseVehicle3DAsset(
+  kind: 'pump' | 'rescue' | 'ambulance' | 'command',
+  isSelected: boolean
+): THREE.Group {
+  const g = new THREE.Group();
+  g.name = `response_vehicle_${kind}`;
+  const mat = (color: number, rough = 0.35, metal = 0.3) =>
+    new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
+  const bodyColor =
+    kind === 'pump' ? (isSelected ? 0xef4444 : 0xdc2626)
+    : kind === 'rescue' ? 0xf97316
+    : 0xf8fafc;
+  const stripeColor = kind === 'pump' ? 0xd4d4d8 : kind === 'rescue' ? 0xf8fafc : 0xdc2626;
+  const dims =
+    kind === 'command' ? { len: 3.6, h: 1.25, w: 1.7, cab: 1.2 }
+    : kind === 'ambulance' ? { len: 4.4, h: 1.7, w: 1.8, cab: 1.2 }
+    : { len: 5.2, h: 1.6, w: 2.0, cab: 1.6 };
+  const dark = mat(0x18181b, 0.8, 0.3);
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(dims.len, 0.35, dims.w), dark);
+  chassis.position.set(0, 0.45, 0);
+  g.add(chassis);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(dims.len - dims.cab, dims.h, dims.w), mat(bodyColor));
+  body.position.set(-dims.cab / 2, 0.62 + dims.h / 2, 0);
+  body.castShadow = true;
+  g.add(body);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(dims.cab, dims.h * 0.85, dims.w), mat(bodyColor));
+  cab.position.set(dims.len / 2 - dims.cab / 2, 0.62 + (dims.h * 0.85) / 2, 0);
+  g.add(cab);
+  const stripe = new THREE.Mesh(
+    new THREE.BoxGeometry(dims.len - dims.cab + 0.02, dims.h * 0.22, dims.w + 0.02),
+    mat(stripeColor, 0.3, kind === 'pump' ? 0.8 : 0.2)
+  );
+  stripe.position.set(-dims.cab / 2, 0.62 + dims.h * 0.45, 0);
+  g.add(stripe);
+  const glass = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, dims.h * 0.35, dims.w * 0.88),
+    mat(0x38bdf8, 0.15, 0.7)
+  );
+  glass.position.set(dims.len / 2 + 0.01, 0.62 + dims.h * 0.6, 0);
+  g.add(glass);
+  const bar = new THREE.Mesh(
+    new THREE.BoxGeometry(0.3, 0.15, dims.w * 0.7),
+    new THREE.MeshBasicMaterial({ color: kind === 'ambulance' || kind === 'command' ? 0x3b82f6 : 0xff2222 })
+  );
+  bar.position.set(dims.len / 2 - dims.cab / 2, 0.62 + dims.h * 0.85 + 0.08, 0);
+  g.add(bar);
+  if (kind === 'ambulance') {
+    const red = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    const c1 = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.3), red);
+    const c2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.9), red);
+    for (const c of [c1, c2]) {
+      c.position.set(-dims.cab / 2, 0.62 + dims.h + 0.07, 0);
+      g.add(c);
+    }
+  }
+  const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.3, 14);
+  wheelGeo.rotateX(Math.PI / 2);
+  for (const wx of [-dims.len / 2 + 0.8, dims.len / 2 - 0.8]) {
+    for (const wz of [-dims.w / 2, dims.w / 2]) {
+      const wheel = new THREE.Mesh(wheelGeo, dark);
+      wheel.position.set(wx, 0.38, wz);
+      g.add(wheel);
+    }
+  }
+  return g;
+}
+
+/**
  * Builds a 3D Emergency Medical Triage Post (+ Cross Medical Pavilion & Rescue Ambulance)
  */
 export function createMedicalPost3DAsset(isSelected: boolean): THREE.Group {

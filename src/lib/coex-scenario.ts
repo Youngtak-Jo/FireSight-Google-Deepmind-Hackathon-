@@ -5,7 +5,7 @@
  * 공개 자료와 구글 지도(2026-11 확인) 기준이다. 호실 배치·인원·기상·도착 시간은 시연을 위한 가정값이다.
  *  - 강남소방서 = 삼성119안전센터와 같은 청사: 서울 강남구 테헤란로 629 (코엑스에서 직선 약 730m)
  *  - 영동119안전센터: 강남구 도산대로 320 (도로 3.1km·약 8분) / 역삼119안전센터: 강남구 역삼로 236 (도로 3.5km·약 9분) — 카카오내비 실측
- *  - 코엑스 동문 정류장(영동대로), 봉은사.코엑스북문 정류장(봉은사로) 위치 기준으로 차량 배치
+ *  - 출동대 편성·차량 배치·대응단계는 coex-dispatch.ts (공개 자료 기반 시연용 편성)
  *  - 도착 시간·도로거리: 카카오모빌리티 길찾기 API 실측(2026-11-28 토요일). 구글 지도는 한국 길찾기 미지원
  *
  * 차량 호출명 규칙 (현장 사용 방식)
@@ -22,6 +22,13 @@ import {
   type SourceDocument,
   type PersonLocationEntry,
 } from './incident-engine.ts';
+import {
+  createCoexStaging,
+  createCoexStations,
+  coexDispatchTableMarkdown,
+  COEX_RESPONSE_LEVEL,
+  COEX_ROUTE_MEASURED_AT,
+} from './coex-dispatch.ts';
 import {
   buildSchematicPlanSvg,
   svgToDataUrl,
@@ -324,53 +331,7 @@ export function createCoexScene(now = Date.now()): SceneSpec {
         buildingRevision: REV,
       },
     ],
-    stagingCandidates: [
-      {
-        id: 'stg-samseong-pump',
-        type: 'truck_staging',
-        label: '삼성펌프 — 영동대로 동문 GATE 앞',
-        coordinates: { lat: 37.51219, lng: 127.06081 },
-        localPosition: [31, 0, 3],
-        status: 'selected',
-        placedBy: 'research_candidate',
-        risks: ['영동대로 차량 통행 많음 — 진입 차선 통제 필요'],
-        outstandingChecks: ['동문 측 송수구·옥내소화전 위치 확인'],
-        routeDistanceMeters: 1152,
-        routeDurationSeconds: 200,
-        stationName: '강남소방서·삼성119안전센터 (테헤란로 629)',
-        buildingRevision: REV,
-      },
-      {
-        id: 'stg-yeongdong-pump',
-        type: 'truck_staging',
-        label: '영동펌프 — 봉은사로 북문 GATE 앞',
-        coordinates: { lat: 37.51356, lng: 127.05756 },
-        localPosition: [4, 0, -22],
-        status: 'candidate',
-        placedBy: 'research_candidate',
-        risks: ['북문 진입로 폭 확인 필요'],
-        outstandingChecks: ['봉은사로 쪽 소화전 위치 확인'],
-        routeDistanceMeters: 3138,
-        routeDurationSeconds: 465,
-        stationName: '영동119안전센터 (도산대로 320)',
-        buildingRevision: REV,
-      },
-      {
-        id: 'stg-med-north',
-        type: 'medical_post',
-        label: '임시응급의료소 — 북측 봉은사로변 (바람 불어오는 쪽) · 삼성구급·역삼구급',
-        coordinates: { lat: 37.5147, lng: 127.057 },
-        localPosition: [-16, 0, -21],
-        status: 'selected',
-        placedBy: 'research_candidate',
-        risks: ['연기는 남남동쪽(테헤란로·삼성역 방면)으로 흐름 — 의료소는 북측 유지'],
-        outstandingChecks: ['보건소장 도착 시 응급의료소로 전환', '구급차 출입 동선 확보'],
-        routeDistanceMeters: 1328,
-        routeDurationSeconds: 239,
-        stationName: '삼성구급 · 역삼구급',
-        buildingRevision: REV,
-      },
-    ],
+    stagingCandidates: createCoexStaging(REV),
     quarantinedItems: [],
     scenarioAssumptions: {
       fuelAssumptions:
@@ -497,12 +458,13 @@ export function createCoexIncidentState(): IncidentState {
         title: '위치·출동 경로',
         subagentName: '위치 조사 AI',
         status: 'completed',
-        summary: '영동대로 513 (북위 37.5119°, 동경 127.0589°) · 강남소방서·삼성119안전센터 도로 1.2km(약 3분)',
+        summary: '영동대로 513 (북위 37.5119°, 동경 127.0589°) · 강남소방서 도로 1.2km · 최초 출동 9대',
         sourceIds: [SITE_ID],
         findings: [
           '건물 확인: **코엑스 (스타필드 코엑스몰)**, 서울 강남구 영동대로 513. 강남소방서 관할.',
           '차량 진입: 영동대로 쪽 **동문 GATE**, 봉은사로 쪽 **북문 GATE**. 지하는 **삼성역 5·6번 출구(밀레니엄 광장)**, **봉은사역 7번 출구(아셈플라자)**와 연결.',
-          '출동: **강남소방서·삼성119안전센터**(테헤란로 629, 도로 약 1.2km·3분)에서 **삼성펌프**(선착)·**삼성100**(구조)·**삼성구급**, **영동119안전센터**(도산대로 320)에서 **영동펌프**, **역삼119안전센터**(역삼로 236)에서 **역삼구급**. (도착 시간은 카카오내비 도로 경로 실측값 — 실행 시 실시간 교통 탭에서 갱신)',
+          '최초 출동(관할 + 가장 가까운 타관할): **강남소방서**에서 **삼성펌프**(선착)·**삼성100**·**삼성구급**·**현장대응단 지휘차**, **영동119안전센터**에서 **영동펌프**·**영동구급**, **역삼119안전센터**에서 **역삼펌프**·**역삼구급**, 송파소방서 **잠실119안전센터**에서 **잠실펌프**(타관할, 삼성역 쪽 가장 가까운 펌프차).',
+          `도착 시간은 카카오내비 도로 경로 실측값(${COEX_ROUTE_MEASURED_AT}) — 긴급차량은 더 빠를 수 있으며, 실행 시 실시간 교통 탭에서 갱신.`,
         ],
         steps: [
           {
@@ -515,10 +477,10 @@ export function createCoexIncidentState(): IncidentState {
           },
           {
             id: 'st-coex-geo-2',
-            label: '동문·북문 GATE 진입 경로와 차량 배치 위치 계산',
+            label: '동문·북문·서문·남측 진입 경로와 차량 배치 위치 계산',
             status: 'completed',
             toolName: 'routes.computeRoutes',
-            detail: '삼성펌프(테헤란로 629) → 동문 GATE 도로 1.2km·약 3분, 영동펌프(도산대로 320) → 북문 GATE 도로 3.1km·약 8분',
+            detail: '삼성펌프 → 동문 1.2km·약 8분, 영동펌프 → 북문 3.1km·약 10분, 역삼펌프 → 서문 2.8km·약 11분, 잠실펌프 → 남측 3.3km·약 11분 (일반 차량 기준)',
             timestamp: ts(25000),
           },
         ],
@@ -624,6 +586,7 @@ export function createCoexIncidentState(): IncidentState {
     buildingRevision: REV,
     title: '코엑스몰 지하1층 식당가 주방 화재',
     status: 'monitoring',
+    responseLevel: { ...COEX_RESPONSE_LEVEL, issuedAt: ts(95000) },
     callState: {
       active: true,
       muted: false,
@@ -644,36 +607,12 @@ export function createCoexIncidentState(): IncidentState {
       heightMeters: BUILDING_DIMS.height,
       constructionType: '지하 쇼핑몰 + 지상 컨벤션센터 복합 건물 (시연용 단순화 모델)',
       renovationNotes: '호실 배치는 시연용 가정 — 실제 대응 시 방재센터 도면으로 확인 필요',
-      nearbyStations: [
-        {
-          id: 'st-samseong',
-          name: '강남소방서·삼성119안전센터 (삼성펌프·삼성구급·삼성100)',
-          address: '서울 강남구 테헤란로 629 · 도로 1.2km · 약 3분 (카카오내비 실측 2026-11-28)',
-          coordinates: { lat: 37.51029, lng: 127.06686 },
-          distanceMeters: 1152,
-          durationSeconds: 200,
-        },
-        {
-          id: 'st-yeongdong',
-          name: '영동119안전센터 (영동펌프·영동구급)',
-          address: '서울 강남구 도산대로 320 · 도로 3.1km · 약 8분 (카카오내비 실측 2026-11-28)',
-          coordinates: { lat: 37.52206, lng: 127.03694 },
-          distanceMeters: 3138,
-          durationSeconds: 465,
-        },
-        {
-          id: 'st-yeoksam',
-          name: '역삼119안전센터 (역삼구급)',
-          address: '서울 강남구 역삼로 236 · 도로 3.5km · 약 9분 (카카오내비 실측 2026-11-28)',
-          coordinates: { lat: 37.49719, lng: 127.04244 },
-          distanceMeters: 3484,
-          durationSeconds: 552,
-        },
-      ],
+      nearbyStations: createCoexStations(),
       accessRoads: [
-        '영동대로 — 동문 GATE (삼성펌프 배치)',
-        '봉은사로 — 북문 GATE (영동펌프 배치 후보, 임시응급의료소)',
-        '봉은사로86길·테헤란로87길 — 서측 이면도로',
+        '영동대로 — 동문 GATE (삼성펌프·삼성100·송파100)',
+        '봉은사로 — 북문 GATE (영동펌프·개포펌프), 임시응급의료소, 봉은사역 사거리 현장지휘소',
+        '봉은사로86길·테헤란로87길 — 서문 (역삼펌프·서초100)',
+        '영동대로 남측 밀레니엄광장 — 삼성역 연결 (잠실펌프·수서펌프)',
         '테헤란로·삼성역 — 지하 연결통로 (연기 이동 방향)',
       ],
     },
@@ -776,7 +715,7 @@ export function createCoexIncidentState(): IncidentState {
         type: 'research_trace',
         speaker: 'FireSight 조사 AI',
         speakerRole: 'research_orchestrator',
-        text: '**코엑스(영동대로 513)** 위치와 진입로(**동문·북문 GATE**, 삼성역·봉은사역 연결통로)를 확인하고, 시연용 평면도로 **지하1층 식당가·1층·2층** 3D 구조를 만들었습니다. 출동: **삼성펌프**(선착)·**영동펌프**, **삼성100**, **삼성구급**·**역삼구급**.',
+        text: '**코엑스(영동대로 513)** 위치와 진입로(**동문·북문·서문**, 삼성역·봉은사역 연결통로)를 확인하고, 시연용 평면도로 **지하1층 식당가·1층·2층** 3D 구조를 만들었습니다. 최초 출동 9대: **삼성펌프**(선착)·**영동펌프**·**역삼펌프**·**잠실펌프**(타관할), **삼성100**, **삼성구급**·**영동구급**·**역삼구급**, **현장대응단 지휘차**.',
         createdAt: ts(14000),
         buildingRevision: REV,
         traceData: trace,
@@ -804,14 +743,14 @@ export function createCoexIncidentState(): IncidentState {
         type: 'model_update',
         speaker: 'FireSight 3D 모델러',
         speakerRole: 'firesight_ai',
-        text: '**코엑스 지하1층 식당가·1층·2층** 3D 구조를 만들고(시연용 평면도 기준), **삼성펌프**를 동문 GATE 앞에, **임시응급의료소**를 북측 봉은사로변(바람 불어오는 쪽)에 배치했습니다.',
+        text: '**코엑스 지하1층 식당가·1층·2층** 3D 구조를 만들고(시연용 평면도 기준), 최초 출동대를 출입구별로 배치했습니다: **동문** 삼성펌프·삼성100, **북문** 영동펌프, **서문** 역삼펌프, **남측(삼성역 연결)** 잠실펌프, **봉은사역 사거리** 현장지휘소, **북측 봉은사로변** 임시응급의료소(바람 불어오는 쪽).',
         createdAt: ts(70000),
         buildingRevision: REV,
         modelUpdate: {
           updateId: 'mu-coex-1',
           buildingRevision: REV,
           summary:
-            '**코엑스 지하1층 식당가** 3D 구성 · 화점 **B-12 한식당 주방** · **삼성펌프** 동문 GATE · **임시응급의료소** 봉은사로변',
+            '**코엑스 지하1층 식당가** 3D 구성 · 화점 **B-12 한식당 주방** · 최초 출동대 출입구별 배치 · **임시응급의료소** 봉은사로변',
           focusElementId: 'b1-kitchen',
           focusFloor: -1,
           sourceRefs: [
@@ -846,11 +785,28 @@ export function createCoexIncidentState(): IncidentState {
           { sourceId: SITE_ID, title: '코엑스 위치도 (시연용)' },
         ],
         considerationsForDispatch: [
-          '**구조**: 구조대상자 6명 중 3명만 위치 확인 → **삼성100** 투입 후 위치 미상 2명 수색에 인원이 부족하면 **서초100** 추가 출동 요청 검토.',
-          '**연기 확산**: 지하 중앙 통로 → **삼성역 연결통로** 방향. 방재센터에 **제연설비 가동·방화셔터 작동** 확인, 지하철 쪽 대피 통제 요청.',
-          '**가스**: 식당가 **가스 중간밸브 차단** 확인 전까지 재발화 위험.',
-          '**구급**: **삼성구급** 주방 직원 연기 흡입 우선 이송, **역삼구급**은 아동 포함 가족 3명 대비. 임시응급의료소는 북측 봉은사로변(풍상측).',
+          '**대응단계**: 지하 다중이용시설 · 구조대상자 6명(위치 미상 2명) · 연기가 **삼성역 연결통로**로 이동 → 인명피해 우려가 커 **대응 1단계 즉시 발령(하향식)** 권고. 진압 상황을 보고 나중에 낮춥니다.',
+          '**구조**: 삼성100 1개 대로는 식당 홀 3명 구조와 위치 미상 2명 수색을 동시에 못 함 → **서초100·송파100 지금 요청**. 일반 차량 기준 각각 **약 28분·35분** 걸려 늦게 부르면 수색이 비게 됩니다. (참고: 광진소방서 구조대가 동문까지 약 26분으로 송파100보다 가까울 수 있음 — 출동 가능 여부 확인)',
+          '**진압·배연**: 동문 주 진입(삼성펌프) · 북문(영동펌프) · 서측 피난계단 엄호(역삼펌프) · 삼성역 연결통로 연기 차단(잠실펌프) 4방향에 더해 **수서펌프**(남측 배연)·**개포펌프**(급수 지원) 추가.',
+          '**구급**: 최초 3대(삼성·영동·역삼구급)에 **잠실구급·수서구급** 추가 → 5대. 임시응급의료소는 북측 봉은사로변(풍상측)에서 중증도 분류.',
+          '**유관기관**: 방재센터에 **제연설비 가동·방화셔터 작동·가스 중간밸브 차단** 확인, 서울교통공사에 삼성역 연결통로 통제 요청, 경찰에 영동대로·봉은사로 교통 통제 요청.',
         ],
+      },
+      {
+        id: 'evt-coex-dispatch-1',
+        type: 'team_message',
+        speaker: '강남소방서 119종합상황실',
+        speakerRole: 'dispatcher',
+        text: [
+          '**대응 1단계 발령** — 코엑스몰 지하1층 식당가 화재, 다수 인명피해 우려.',
+          '현장대응단장 지휘권 선언, 현장지휘소는 봉은사역 사거리. 타관할 **서초100·송파100** 출동 요청 완료.',
+          '',
+          coexDispatchTableMarkdown('level1'),
+          '',
+          `최초 출동 9대 + 추가 6대 = **총 15대** (펌프 6 · 구조 3 · 구급 5 · 지휘 1). 도착 시간은 카카오내비 실측(${COEX_ROUTE_MEASURED_AT}).`,
+        ].join('\n'),
+        createdAt: ts(95000),
+        buildingRevision: REV,
       },
       {
         id: 'evt-coex-field-1',
@@ -883,7 +839,7 @@ export function createCoexIncidentState(): IncidentState {
         type: 'field_report',
         speaker: '삼성100 · 구조대장',
         speakerRole: 'responder',
-        text: '삼성100 진입. 식당 홀 안쪽 좌석에서 구조대상자 3명(성인 1, 아동 2) 확인, 서측 특별피난계단 1로 구조 중. 주방 직원 1명 중앙 통로에서 발견, 삼성구급 인계. 화장실 쪽 2명은 수색 중이며 인원 부족 시 서초100 지원 요청 예정.',
+        text: '삼성100 진입. 식당 홀 안쪽 좌석에서 구조대상자 3명(성인 1, 아동 2) 확인, 서측 특별피난계단 1로 구조 중. 주방 직원 1명 중앙 통로에서 발견, 삼성구급 인계. 화장실 쪽 2명은 서초100·송파100 도착 시 수색 구역 나눠 인계 예정 (서측 서초100, 동측 송파100).',
         createdAt: ts(145000),
         captureTime: ts(142000),
         buildingRevision: REV,
@@ -896,9 +852,9 @@ export function createCoexIncidentState(): IncidentState {
           roomId: 'b1-dining',
           placeLabel: '지하1층 식당가 B-12 한식당 홀',
           humanDescription:
-            '식당 홀 안쪽 좌석에서 구조대상자 3명(성인 1, 아동 2) 확인, 서측 특별피난계단 1로 구조 중. 주방 직원 1명 중앙 통로에서 발견, 삼성구급 인계. 화장실 쪽 2명 수색 중 — 인원 부족 시 서초100 지원 요청 예정.',
+            '식당 홀 안쪽 좌석에서 구조대상자 3명(성인 1, 아동 2) 확인, 서측 특별피난계단 1로 구조 중. 주방 직원 1명 중앙 통로에서 발견, 삼성구급 인계. 화장실 쪽 2명 — 서초100(서측)·송파100(동측) 도착 시 수색 구역 나눠 인계 예정.',
           aiVisualSummary:
-            '**식당 홀(`b1-dining`)** 구조대상자 3명 위치와 일치합니다. 남은 위치 미상 **2명** 수색을 위해 **서초100** 추가 출동 요청 시점을 검토하세요. (사진 없음 — 대원 보고 내용만 반영)',
+            '**식당 홀(`b1-dining`)** 구조대상자 3명 위치와 일치합니다. 위치 미상 **2명**은 **서초100**(약 28분)·**송파100**(약 35분)이 도착할 때까지 삼성100이 구조 후 1차 검색을 이어가야 합니다. (사진 없음 — 대원 보고 내용만 반영)',
           deliveryStatus: 'delivered',
           linkedElementId: 'b1-dining',
           buildingRevision: REV,

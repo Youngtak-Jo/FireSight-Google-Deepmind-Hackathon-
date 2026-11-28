@@ -431,6 +431,18 @@ export default function App() {
               >
                 정보 수정 #{incident.buildingRevision}
               </span>
+              {incident.responseLevel && incident.responseLevel.level > 0 && (
+                <span
+                  data-testid="header-response-level"
+                  title={incident.responseLevel.basis}
+                  className="shrink-0 rounded-xs border border-red-500/60 bg-red-600/90 px-1.5 py-0.5 text-[10px] font-bold text-white"
+                >
+                  {incident.responseLevel.label} 발령
+                  {incident.responseLevel.issuedAt
+                    ? ` · ${new Date(incident.responseLevel.issuedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+                    : ''}
+                </span>
+              )}
             </div>
             <p className="truncate text-[11px] text-zinc-400 hidden md:block">
               {incident.building?.address}

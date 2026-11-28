@@ -404,7 +404,8 @@ export function MapWorkspace({
                   ? '#f59e0b'
                   : '#d97706'
                 : '#10b981';
-            const alignEnd = idx === 1;
+            // 코엑스: 건물 서쪽 핀은 이름표를 왼쪽에 붙여 화점 표시와 겹치지 않게 한다
+            const alignEnd = isCoexMap ? pt.x < buildingPt.x - 4 : idx === 1;
 
             return (
               <g
@@ -574,6 +575,39 @@ export function MapWorkspace({
                     {STAGING_STATUS_KO[stg.status] ?? stg.status}
                   </span>
                 </div>
+                {stg.units && stg.units.length > 0 && (
+                  <ul className="space-y-0.5">
+                    {stg.units.map((un) => (
+                      <li key={un.callSign} className="flex items-baseline justify-between gap-2 text-[10px]">
+                        <span className="min-w-0">
+                          <span
+                            className={`font-semibold ${
+                              un.kind === 'pump'
+                                ? 'text-red-300'
+                                : un.kind === 'rescue'
+                                  ? 'text-orange-300'
+                                  : un.kind === 'ambulance'
+                                    ? 'text-emerald-300'
+                                    : 'text-sky-300'
+                            }`}
+                          >
+                            {un.callSign}
+                          </span>
+                          {un.outOfJurisdiction && (
+                            <span className="ml-1 rounded-xs border border-sky-500/40 px-1 text-[9px] text-sky-300">타관할</span>
+                          )}
+                          {un.dispatchPhase === 'level1' && (
+                            <span className="ml-1 rounded-xs border border-amber-500/40 px-1 text-[9px] text-amber-300">대응1단계</span>
+                          )}
+                          <span className="ml-1 text-zinc-400">{un.role}</span>
+                        </span>
+                        {un.routeDurationSeconds ? (
+                          <span className="shrink-0 font-mono text-zinc-300">{Math.round(un.routeDurationSeconds / 60)}분</span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {stg.risks.length > 0 && (
                   <p className="text-[10px] text-zinc-400">
                     <ShieldAlert className="inline h-3 w-3 text-amber-400 mr-1" />
